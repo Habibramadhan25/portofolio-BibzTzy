@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ExternalLink, Heart, Eye, Edit3, Trash2, Maximize2 } from 'lucide-react';
 import { Github } from '../common/BrandIcons';
 import GlassCard from '../common/GlassCard';
@@ -12,7 +12,7 @@ export default function ProjectCard({
   onDelete,
   onToggleFavorite
 }) {
-  const { playSound, isReducedMotion } = useTheme();
+  const { playSound } = useTheme();
 
   const {
     id,
@@ -29,123 +29,28 @@ export default function ProjectCard({
     isSample
   } = project;
 
-  // 3D Tilt Refs (Direct DOM manipulation for 60fps & rock-solid click stability)
-  const cardRef = useRef(null);
-  const innerRef = useRef(null);
-  const glareRef = useRef(null);
-  const rafId = useRef(null);
-
   // Lightbox State
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
-  // Check if touch device
-  const [isTouchDevice] = useState(() => (
-    typeof window !== 'undefined' && window.matchMedia
-      ? window.matchMedia('(pointer: coarse)').matches
-      : false
-  ));
-
-  // 3D Pointer Move Handler with requestAnimationFrame (zero React re-renders)
-  const handleMouseMove = (e) => {
-    if (isReducedMotion || isTouchDevice) return;
-    const card = cardRef.current;
-    const inner = innerRef.current;
-    const glare = glareRef.current;
-    if (!card || !inner) return;
-
-    // Jika kursor berada di atas tombol atau footer aksi, segera reset tilt ke normal agar klik 100% stabil
-    const target = e.target;
-    if (target && target.closest && target.closest('button, a, input, select, textarea, .action-footer, .no-tilt')) {
-      if (rafId.current) cancelAnimationFrame(rafId.current);
-      inner.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
-      if (glare) glare.style.opacity = '0';
-      return;
-    }
-
-    if (rafId.current) cancelAnimationFrame(rafId.current);
-
-    rafId.current = requestAnimationFrame(() => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-
-      // Max 6 deg tilt
-      const rotateX = ((y - centerY) / centerY) * -6;
-      const rotateY = ((x - centerX) / centerX) * 6;
-      const glareX = (x / rect.width) * 100;
-      const glareY = (y / rect.height) * 100;
-
-      inner.style.transform = `rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.01, 1.01, 1.01)`;
-      if (glare) {
-        glare.style.background = `radial-gradient(circle at ${glareX.toFixed(1)}% ${glareY.toFixed(1)}%, rgba(var(--accent-rgb), 0.22) 0%, transparent 65%)`;
-        glare.style.opacity = '0.55';
-      }
-    });
-  };
-
-  const handleMouseLeave = () => {
-    if (rafId.current) cancelAnimationFrame(rafId.current);
-    if (innerRef.current) {
-      innerRef.current.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
-    }
-    if (glareRef.current) {
-      glareRef.current.style.opacity = '0';
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (rafId.current) cancelAnimationFrame(rafId.current);
-    };
-  }, []);
-
   return (
     <>
-      <div
-        ref={cardRef}
-        className="card-3d-perspective"
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={{ height: '100%' }}
+      <GlassCard
+        className="project-card"
+        interactive
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          padding: '1.25rem',
+          position: 'relative',
+          overflow: 'hidden',
+          backgroundColor: '#080E1B',
+          backgroundImage: 'linear-gradient(180deg, #0F1C36 0%, #060B14 100%)',
+          border: '1px solid rgba(69, 207, 255, 0.35)',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.7), 0 0 18px rgba(69, 207, 255, 0.12)',
+          transition: 'transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease'
+        }}
       >
-        <div
-          ref={innerRef}
-          className={`card-3d-inner ${isReducedMotion ? 'reduced-motion' : ''}`}
-          style={{
-            height: '100%',
-            transform: 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
-            transformStyle: 'flat'
-          }}
-        >
-          {/* Specular 3D Light Glare */}
-          {!isReducedMotion && !isTouchDevice && (
-            <div
-              ref={glareRef}
-              className="card-3d-glare"
-              style={{
-                opacity: 0,
-                pointerEvents: 'none'
-              }}
-            />
-          )}
-
-          <GlassCard
-            className="project-card"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100%',
-              padding: '1.25rem',
-              position: 'relative',
-              overflow: 'hidden',
-              backgroundColor: '#080E1B',
-              backgroundImage: 'linear-gradient(180deg, #0F1C36 0%, #060B14 100%)',
-              border: '1px solid rgba(69, 207, 255, 0.35)',
-              boxShadow: '0 12px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(69, 207, 255, 0.12)'
-            }}
-          >
             {/* Thumbnail Container */}
             <div
               style={{
@@ -512,8 +417,6 @@ export default function ProjectCard({
               )}
             </div>
           </GlassCard>
-        </div>
-      </div>
 
       {/* Project Image Lightbox */}
       <ImageLightbox
