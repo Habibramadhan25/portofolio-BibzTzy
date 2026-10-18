@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play } from 'lucide-react';
+import { Play, Volume2, VolumeX, FastForward, Loader2 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { profileService } from '../../services/profileService';
 import { projectService } from '../../services/projectService';
@@ -404,7 +404,86 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
                 </span>
               </div>
             )}
+            {/* Tombol Aktifkan Suara / Toggle Audio */}
+            {isPlaying && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isMuted) {
+                    unmuteAndPlaySound();
+                  } else if (videoRef.current) {
+                    videoRef.current.muted = true;
+                    setIsMuted(true);
+                  }
+                }}
+                style={{
+                  position: 'absolute',
+                  bottom: '0.85rem',
+                  right: '0.85rem',
+                  zIndex: 25,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: 'var(--radius-full)',
+                  background: isMuted ? 'rgba(239, 68, 68, 0.88)' : 'rgba(14, 165, 233, 0.85)',
+                  color: '#FFFFFF',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: isMuted ? '0 0 16px rgba(239, 68, 68, 0.65)' : '0 4px 15px rgba(0, 0, 0, 0.5)',
+                  cursor: 'pointer',
+                  backdropFilter: 'blur(8px)',
+                  transition: 'all 0.2s ease'
+                }}
+                title={isMuted ? 'Klik untuk Mengaktifkan Suara Video' : 'Matikan Suara Video'}
+              >
+                {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                <span>{isMuted ? 'Aktifkan Suara' : 'Suara Aktif'}</span>
+              </button>
+            )}
           </motion.div>
+
+          {/* Status Menyiapkan Website & Tombol Lewati */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+            marginTop: '0.85rem',
+            padding: '0 0.25rem',
+            gap: '1rem',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.55rem',
+              color: 'var(--ice-blue)',
+              fontSize: '0.85rem',
+              fontWeight: 500
+            }}>
+              <Loader2 size={15} className="animate-spin" />
+              <span>Mohon tunggu, sedang menyiapkan website...</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={completeAndExit}
+              className="btn btn-glass btn-sm"
+              style={{
+                fontSize: '0.78rem',
+                padding: '0.35rem 0.75rem',
+                gap: '0.35rem',
+                borderRadius: 'var(--radius-full)'
+              }}
+              title="Lewati video intro dan langsung masuk ke beranda"
+            >
+              <span>Lewati Intro</span>
+              <FastForward size={13} />
+            </button>
+          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
