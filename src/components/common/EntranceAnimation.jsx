@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Loader2 } from 'lucide-react';
+import { Play, Loader2, Sparkles } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { profileService } from '../../services/profileService';
 import { projectService } from '../../services/projectService';
@@ -45,6 +45,9 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
     }
   });
 
+  // Tahap animasi: 'video' (pemutaran video intro) -> 'welcome' (layar sambutan transisi)
+  const [stage, setStage] = useState('video');
+
   // Otomatis suara aktif (muted = false) sesuai permintaan pengguna
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -61,6 +64,16 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
       onCompleteRef.current();
     }
   }, []);
+
+  // Saat masuk ke tahap 'welcome', tahan selama 2.2 detik lalu transisi halus ke halaman utama
+  useEffect(() => {
+    if (stage === 'welcome' && isVisible) {
+      const welcomeTimer = setTimeout(() => {
+        completeAndExit();
+      }, 2200);
+      return () => clearTimeout(welcomeTimer);
+    }
+  }, [stage, isVisible, completeAndExit]);
 
   // Preload data secara bertahap setelah video mulai berputar agar tidak berebut CPU/bandwidth
   useEffect(() => {
@@ -84,6 +97,7 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
   useEffect(() => {
     const handleReplay = () => {
       setIsVisible(true);
+      setStage('video');
       setIsPlaying(false);
       setIsAutoplayBlocked(false);
       setHasVideoError(false);
@@ -102,7 +116,6 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
               setIsMuted(false);
             })
             .catch(() => {
-              // Jika audio diblokir, putar muted dulu lalu otomatis unmute pada klik
               video.muted = true;
               setIsMuted(true);
               video.play().catch(() => setIsAutoplayBlocked(true));
@@ -119,7 +132,7 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
 
   // Manajemen pemutaran video intro otomatis bersuara & safety watchdog
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible || stage !== 'video') return;
 
     // Jika pengguna mengaktifkan prefers-reduced-motion, langsung masuk ke Home
     if (isReducedMotion) {
@@ -138,7 +151,6 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
 
     const startPlayback = async () => {
       try {
-        // Coba putar langsung dengan suara aktif (unmuted)
         videoEl.muted = false;
         videoEl.volume = 1;
         await videoEl.play();
@@ -146,9 +158,7 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
         setIsMuted(false);
         setIsAutoplayBlocked(false);
       } catch (unmutedErr) {
-        // Jika browser HP mencekal audio autoplay sebelum gestur, putar muted sementara
-        // dan pasang pendengar gestur pertama untuk langsung menyalakan audio secara otomatis
-        console.log('[EntranceAnimation] Browser mobile membatasi audio sebelum interaksi. Memutar dan otomatis bersuara saat disentuh/diklik:', unmutedErr);
+        console.log('[EntranceAnimation] Autoplay audio butuh gesture. Memutar muted dan otomatis bersuara saat disentuh/diklik:', unmutedErr);
         videoEl.muted = true;
         setIsMuted(true);
 
@@ -194,10 +204,10 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
       videoEl.addEventListener('loadeddata', startPlayback, { once: true });
     }
 
-    // Safety watchdog: Jika video mengalami buffering lama atau macet, transisi otomatis setelah 16 detik
+    // Safety watchdog: Jika video buffering lama, otomatis lanjut ke tahap welcome
     const watchdog = setTimeout(() => {
-      completeAndExit();
-    }, 16000);
+      setStage('welcome');
+    }, 15000);
 
     return () => {
       clearTimeout(watchdog);
@@ -209,22 +219,21 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
         cleanupListeners();
       }
     };
-  }, [isVisible, isReducedMotion, completeAndExit]);
+  }, [isVisible, stage, isReducedMotion, completeAndExit]);
 
-  // Saat video 10 detik selesai berputar, langsung transisi ke Home tanpa jeda kosong
+  // Saat video selesai berputar, masuk ke tahap layar sambutan "Welcome to Website Habib"
   const handleVideoEnded = () => {
-    completeAndExit();
+    setStage('welcome');
   };
 
   const handleVideoError = () => {
     setHasVideoError(true);
-    completeAndExit();
+    setStage('welcome');
   };
 
-  // Jika video ter-pause secara tak terduga (misal interupsi OS mobile), langsung lanjutkan kembali
   const handleVideoPause = () => {
     const video = videoRef.current;
-    if (video && !video.ended && isVisible) {
+    if (video && !video.ended && isVisible && stage === 'video') {
       video.play().catch(() => {});
     }
   };
@@ -241,7 +250,7 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
           setIsAutoplayBlocked(false);
         })
         .catch(() => {
-          completeAndExit();
+          setStage('welcome');
         });
     }
   };
@@ -251,7 +260,7 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
   }
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       <motion.div
         key="bibtzy-entrance-overlay"
         id="bibtzy-video-intro-overlay"
@@ -259,9 +268,9 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
         animate={{ opacity: 1 }}
         exit={{
           opacity: 0,
-          filter: 'blur(8px)',
-          scale: 1.01,
-          transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] }
+          filter: 'blur(10px)',
+          scale: 1.02,
+          transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
         }}
         style={{
           position: 'fixed',
@@ -280,7 +289,7 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
         aria-label="Animasi Pembuka Portfolio BibTzy"
         role="region"
       >
-        {/* Style Keyframes untuk partikel es murni CSS (0% JS overhead pada GPU mobile) */}
+        {/* Style Keyframes untuk partikel es murni CSS & Progress bar */}
         <style>{`
           @keyframes iceParticlePulse {
             0%, 100% {
@@ -297,6 +306,27 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
             animation-delay: var(--delay);
             will-change: transform, opacity;
           }
+          @keyframes welcomeProgressFill {
+            0% {
+              width: 0%;
+            }
+            45% {
+              width: 65%;
+            }
+            100% {
+              width: 100%;
+            }
+          }
+          @keyframes iceRingPulse {
+            0%, 100% {
+              transform: scale(1);
+              opacity: 0.5;
+            }
+            50% {
+              transform: scale(1.12);
+              opacity: 0.9;
+            }
+          }
         `}</style>
 
         {/* Ambient Glow Biru Es di Tengah */}
@@ -306,7 +336,7 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
             width: 'min(90vw, 860px)',
             height: 'min(55vw, 520px)',
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, rgba(2, 132, 199, 0.06) 50%, transparent 75%)',
+            background: 'radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(2, 132, 199, 0.08) 50%, transparent 75%)',
             pointerEvents: 'none',
             transform: 'translate(-50%, -50%)',
             left: '50%',
@@ -315,7 +345,7 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
           }}
         />
 
-        {/* Partikel Es Melayang Halus (Menggunakan CSS GPU Composited) */}
+        {/* Partikel Es Melayang Halus (CSS GPU Composited) */}
         {ICE_PARTICLES.map((p) => (
           <div
             key={p.id}
@@ -338,126 +368,256 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
           />
         ))}
 
-        {/* VIDEO INTRO RESMI BIBTZY (DURASI 10 DETIK) */}
-        <motion.div
-          key="stage-video-intro"
-          initial={{ opacity: 1, scale: 1 }}
-          exit={{
-            opacity: 0,
-            scale: 0.94,
-            filter: 'blur(6px)',
-            transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] }
-          }}
-          style={{
-            position: 'relative',
-            width: '100%',
-            maxWidth: '960px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10,
-            willChange: 'transform',
-            transform: 'translateZ(0)'
-          }}
-        >
-          {/* Video Box Container */}
-          <div
+        {/* TAHAP 1: PEMUTARAN VIDEO INTRO RESMI (DURASI 10 DETIK) */}
+        {stage === 'video' && (
+          <motion.div
+            key="stage-video-intro"
+            initial={{ opacity: 1, scale: 1 }}
+            exit={{
+              opacity: 0,
+              scale: 0.94,
+              filter: 'blur(8px)',
+              transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] }
+            }}
             style={{
               position: 'relative',
               width: '100%',
-              borderRadius: '16px',
-              overflow: 'hidden',
-              background: '#01040A',
-              boxShadow: '0 16px 50px rgba(0, 0, 0, 0.8), 0 0 35px rgba(56, 189, 248, 0.22)',
-              border: '1px solid rgba(56, 189, 248, 0.28)',
+              maxWidth: '960px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10,
+              willChange: 'transform',
               transform: 'translateZ(0)'
             }}
           >
-            <video
-              ref={videoRef}
-              src="/videos/bibtzy-intro.mp4"
-              autoPlay
-              muted={isMuted}
-              playsInline
-              webkit-playsinline="true"
-              x5-playsinline="true"
-              preload="auto"
-              onEnded={handleVideoEnded}
-              onError={handleVideoError}
-              onPause={handleVideoPause}
+            {/* Video Box Container */}
+            <div
               style={{
-                display: 'block',
+                position: 'relative',
                 width: '100%',
-                height: 'auto',
-                maxHeight: '76vh',
-                aspectRatio: '16/9',
-                objectFit: 'contain',
-                backgroundColor: '#01040A',
-                willChange: 'transform'
+                borderRadius: '16px',
+                overflow: 'hidden',
+                background: '#01040A',
+                boxShadow: '0 16px 50px rgba(0, 0, 0, 0.8), 0 0 35px rgba(56, 189, 248, 0.22)',
+                border: '1px solid rgba(56, 189, 248, 0.28)',
+                transform: 'translateZ(0)'
               }}
-            />
-
-            {/* Autoplay blocked fallback jika browser memblokir video total */}
-            {isAutoplayBlocked && !isPlaying && (
-              <div
+            >
+              <video
+                ref={videoRef}
+                src="/videos/bibtzy-intro.mp4"
+                autoPlay
+                muted={isMuted}
+                playsInline
+                webkit-playsinline="true"
+                x5-playsinline="true"
+                preload="auto"
+                onEnded={handleVideoEnded}
+                onError={handleVideoError}
+                onPause={handleVideoPause}
                 style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'rgba(2, 5, 14, 0.88)',
-                  backdropFilter: 'blur(8px)',
-                  zIndex: 20,
-                  gap: '1rem',
-                  padding: '1.5rem',
-                  textAlign: 'center'
+                  display: 'block',
+                  width: '100%',
+                  height: 'auto',
+                  maxHeight: '74vh',
+                  aspectRatio: '16/9',
+                  objectFit: 'contain',
+                  backgroundColor: '#01040A',
+                  willChange: 'transform'
                 }}
-              >
-                <button
-                  type="button"
-                  onClick={handleManualPlay}
-                  className="btn btn-primary"
+              />
+
+              {/* Autoplay blocked fallback jika browser mobile memblokir video total */}
+              {isAutoplayBlocked && !isPlaying && (
+                <div
                   style={{
-                    padding: '0.9rem 1.8rem',
-                    fontSize: '0.95rem',
-                    boxShadow: '0 0 25px rgba(56, 189, 248, 0.6)'
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(2, 5, 14, 0.88)',
+                    backdropFilter: 'blur(8px)',
+                    zIndex: 20,
+                    gap: '1rem',
+                    padding: '1.5rem',
+                    textAlign: 'center'
                   }}
                 >
-                  <Play size={18} fill="currentColor" />
-                  <span>Mulai Video Intro BibTzy</span>
-                </button>
-                <span style={{ color: 'rgba(224, 242, 254, 0.75)', fontSize: '0.8rem' }}>
-                  Ketuk tombol untuk memutar video dengan audio
-                </span>
-              </div>
-            )}
-          </div>
+                  <button
+                    type="button"
+                    onClick={handleManualPlay}
+                    className="btn btn-primary"
+                    style={{
+                      padding: '0.9rem 1.8rem',
+                      fontSize: '0.95rem',
+                      boxShadow: '0 0 25px rgba(56, 189, 248, 0.6)'
+                    }}
+                  >
+                    <Play size={18} fill="currentColor" />
+                    <span>Mulai Video Intro BibTzy</span>
+                  </button>
+                  <span style={{ color: 'rgba(224, 242, 254, 0.75)', fontSize: '0.8rem' }}>
+                    Ketuk tombol untuk memutar video dengan audio
+                  </span>
+                </div>
+              )}
+            </div>
 
-          {/* Status Menyiapkan Website (Tombol Aktifkan Suara dan Lewati Intro telah dihapus) */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            marginTop: '0.85rem',
-            padding: '0 0.25rem'
-          }}>
+            {/* TULISAN DI BAWAH VIDEO: Welcome to Website Habib & Mohon tunggu sebentar */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              marginTop: '1rem',
+              gap: '0.35rem',
+              textAlign: 'center'
+            }}>
+              <div style={{
+                fontSize: 'clamp(0.95rem, 3.5vw, 1.15rem)',
+                fontWeight: 700,
+                letterSpacing: '0.03em',
+                background: 'linear-gradient(135deg, #FFFFFF 0%, #BAE6FD 50%, #38BDF8 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                filter: 'drop-shadow(0 0 16px rgba(56, 189, 248, 0.4))'
+              }}>
+                Welcome to Website Habib
+              </div>
+
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                color: '#BAE6FD',
+                fontSize: '0.82rem',
+                fontWeight: 500
+              }}>
+                <Loader2 size={14} className="animate-spin text-ice" />
+                <span>Mohon tunggu sebentar...</span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* TAHAP 2: LAYAR SAMBUTAN KHUSUS (SETELAH ANIMASI VIDEO SELESAI) */}
+        {stage === 'welcome' && (
+          <motion.div
+            key="stage-welcome-screen"
+            initial={{ opacity: 0, scale: 0.92, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{
+              opacity: 0,
+              scale: 1.04,
+              filter: 'blur(12px)',
+              transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] }
+            }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              position: 'relative',
+              zIndex: 20,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              padding: '2.5rem 2rem',
+              borderRadius: '24px',
+              background: 'rgba(6, 14, 28, 0.88)',
+              backdropFilter: 'blur(25px)',
+              WebkitBackdropFilter: 'blur(25px)',
+              border: '1.5px solid rgba(56, 189, 248, 0.4)',
+              boxShadow: '0 24px 70px rgba(0, 0, 0, 0.85), 0 0 45px rgba(56, 189, 248, 0.25)',
+              maxWidth: 'min(92vw, 520px)',
+              width: '100%'
+            }}
+          >
+            {/* Lingkaran Avatar Profile / Logo Kristal */}
+            <div style={{
+              position: 'relative',
+              width: '88px',
+              height: '88px',
+              borderRadius: '50%',
+              marginBottom: '1.25rem',
+              padding: '3px',
+              background: 'linear-gradient(135deg, #38BDF8 0%, #0284C7 50%, #0369A1 100%)',
+              boxShadow: '0 0 32px rgba(56, 189, 248, 0.65)'
+            }}>
+              <img
+                src="/images/avatar.jpg"
+                alt="Habib Ramadhan"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+              <div style={{
+                position: 'absolute',
+                inset: '-6px',
+                borderRadius: '50%',
+                border: '1.5px solid rgba(56, 189, 248, 0.5)',
+                animation: 'iceRingPulse 2s ease-in-out infinite'
+              }} />
+            </div>
+
+            {/* Tulisan Welcome to Website Habib */}
+            <h1 style={{
+              margin: '0 0 0.5rem 0',
+              fontSize: 'clamp(1.5rem, 5.2vw, 2.15rem)',
+              fontWeight: 800,
+              lineHeight: 1.25,
+              letterSpacing: '-0.02em',
+              background: 'linear-gradient(135deg, #FFFFFF 0%, #BAE6FD 45%, #38BDF8 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              filter: 'drop-shadow(0 0 25px rgba(56, 189, 248, 0.5))'
+            }}>
+              Welcome to Website Habib
+            </h1>
+
+            {/* Tulisan Mohon tunggu sebentar */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '0.55rem',
-              color: 'var(--ice-blue)',
-              fontSize: '0.85rem',
-              fontWeight: 500
+              color: '#BAE6FD',
+              fontSize: '0.92rem',
+              fontWeight: 500,
+              marginBottom: '1.5rem'
             }}>
-              <Loader2 size={15} className="animate-spin" />
-              <span>Mohon tunggu, sedang menyiapkan website...</span>
+              <Loader2 size={16} className="animate-spin text-ice" />
+              <span>Mohon tunggu sebentar...</span>
             </div>
-          </div>
-        </motion.div>
+
+            {/* Glowing Loading Progress Bar */}
+            <div style={{
+              width: '100%',
+              maxWidth: '300px',
+              height: '5px',
+              background: 'rgba(56, 189, 248, 0.15)',
+              borderRadius: '999px',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+              <div
+                style={{
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #38BDF8 0%, #8DDCFF 50%, #FFFFFF 100%)',
+                  borderRadius: '999px',
+                  boxShadow: '0 0 12px #38BDF8',
+                  animation: 'welcomeProgressFill 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+                }}
+              />
+            </div>
+          </motion.div>
+        )}
       </motion.div>
     </AnimatePresence>
   );
