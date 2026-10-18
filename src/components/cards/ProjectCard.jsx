@@ -53,10 +53,12 @@ export default function ProjectCard({
     const glare = glareRef.current;
     if (!card || !inner) return;
 
-    // Jika kursor berada di atas tombol atau footer aksi, hentikan kalkulasi tilt agar klik stabil 100%
+    // Jika kursor berada di atas tombol atau footer aksi, segera reset tilt ke normal agar klik 100% stabil
     const target = e.target;
     if (target && target.closest && target.closest('button, a, input, select, textarea, .action-footer, .no-tilt')) {
       if (rafId.current) cancelAnimationFrame(rafId.current);
+      inner.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+      if (glare) glare.style.opacity = '0';
       return;
     }
 
@@ -229,6 +231,40 @@ export default function ProjectCard({
                   </span>
                 )}
               </div>
+
+              {/* Quick Edit Icon (Owner Mode) */}
+              {onEdit && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    playSound?.('click');
+                    onEdit(project);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '0.6rem',
+                    right: '3.1rem',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: 'var(--radius-full)',
+                    background: 'rgba(7, 11, 20, 0.85)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(69, 207, 255, 0.45)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--ice-blue)',
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-fast)',
+                    zIndex: 10
+                  }}
+                  title="Edit Proyek Ini"
+                  aria-label="Edit Proyek"
+                >
+                  <Edit3 size={15} />
+                </button>
+              )}
 
               {/* Favorite Button */}
               <button

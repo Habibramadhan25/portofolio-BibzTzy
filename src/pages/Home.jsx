@@ -9,8 +9,10 @@ import {
   Code2,
   Award,
   GraduationCap,
-  ChevronRight
+  ChevronRight,
+  Edit3
 } from 'lucide-react';
+import { useOwner } from '../context/OwnerContext';
 import ClockWidget from '../components/common/ClockWidget';
 import StatCard from '../components/common/StatCard';
 import GlassCard from '../components/common/GlassCard';
@@ -29,6 +31,7 @@ import confetti from 'canvas-confetti';
 
 export default function Home() {
   const { profile } = useOutletContext();
+  const { isOwner } = useOwner();
   const toast = useToast();
   const { playSound } = useTheme();
 
@@ -118,6 +121,25 @@ export default function Home() {
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-success)', display: 'inline-block' }} />
               Siap Magang
             </span>
+            {isOwner && (
+              <Link
+                to="/about"
+                className="badge"
+                style={{
+                  background: 'rgba(34, 197, 94, 0.16)',
+                  border: '1px solid rgba(74, 222, 128, 0.45)',
+                  color: '#4ade80',
+                  gap: '0.4rem',
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  padding: '0.35rem 0.85rem'
+                }}
+                title="Buka Halaman About untuk Mengedit Profil & Biodata"
+              >
+                <Edit3 size={13} />
+                <span>Mode Pemilik: Edit Profil</span>
+              </Link>
+            )}
           </div>
 
           <div>

@@ -1,12 +1,13 @@
 import React from 'react';
 import Modal from '../common/Modal';
-import { ExternalLink, Calendar, CheckCircle2, Clock } from 'lucide-react';
+import { ExternalLink, Calendar, CheckCircle2, Clock, Edit3 } from 'lucide-react';
 import { Github } from '../common/BrandIcons';
 
 export default function ProjectDetailModal({
   isOpen,
   onClose,
-  project
+  project,
+  onEdit
 }) {
   if (!project) return null;
 
@@ -56,13 +57,30 @@ export default function ProjectDetailModal({
               </a>
             )}
           </div>
-          <button
-            type="button"
-            className="btn btn-glass btn-sm"
-            onClick={onClose}
-          >
-            Tutup
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {onEdit && (
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => {
+                  onClose();
+                  onEdit(project);
+                }}
+                style={{ borderColor: 'rgba(69, 207, 255, 0.45)', color: 'var(--ice-blue)', gap: '0.4rem' }}
+                title="Edit data proyek ini"
+              >
+                <Edit3 size={14} />
+                <span>Edit Proyek</span>
+              </button>
+            )}
+            <button
+              type="button"
+              className="btn btn-glass btn-sm"
+              onClick={onClose}
+            >
+              Tutup
+            </button>
+          </div>
         </div>
       }
     >

@@ -321,6 +321,7 @@ export default function Projects() {
         isOpen={Boolean(detailProject)}
         onClose={() => setDetailProject(null)}
         project={detailProject}
+        onEdit={isOwner ? handleEdit : undefined}
       />
 
       {/* Delete Confirmation */}
