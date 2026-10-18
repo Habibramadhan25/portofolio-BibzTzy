@@ -11,8 +11,8 @@ export const INITIAL_CERTIFICATES = [
     category: 'Web Development',
     description: 'Menyelesaikan modul Belajar Back-End Pemula dengan JavaScript.',
     imageUrl: '/images/cert-backend.jpg',
-    verificationUrl: 'https://www.dicoding.com/certificates/98XW004D9XM3',
-    credentialId: '98XW004D9XM3',
+    verificationUrl: 'https://www.dicoding.com/certificates/98XW0O4D9XM3',
+    credentialId: '98XW0O4D9XM3',
     isSample: false
   }
 ];
@@ -29,13 +29,34 @@ export const certificateService = {
 
     // Auto-clean old template dummy certificates if still lingering
     const hasOldDummyTitles = data.some(c => c.title === 'Belajar Dasar Pemrograman Web' || c.title === 'UI/UX Design Fundamental');
-    if (hasOldDummyTitles) {
-      const filtered = data.filter(c => c.title !== 'Belajar Dasar Pemrograman Web' && c.title !== 'UI/UX Design Fundamental');
-      this.saveCertificates(filtered);
-      return filtered;
+    let list = hasOldDummyTitles
+      ? data.filter(c => c.title !== 'Belajar Dasar Pemrograman Web' && c.title !== 'UI/UX Design Fundamental')
+      : data;
+
+    // Auto-fix typo in credential ID / verification URL (98XW004D9XM3 -> 98XW0O4D9XM3) in cached certificates
+    let changed = hasOldDummyTitles;
+    list = list.map(cert => {
+      if (
+        (cert.verificationUrl && cert.verificationUrl.includes('98XW004D9XM3')) ||
+        (cert.credentialId && cert.credentialId === '98XW004D9XM3')
+      ) {
+        changed = true;
+        return {
+          ...cert,
+          verificationUrl: cert.verificationUrl
+            ? cert.verificationUrl.replace('98XW004D9XM3', '98XW0O4D9XM3')
+            : 'https://www.dicoding.com/certificates/98XW0O4D9XM3',
+          credentialId: '98XW0O4D9XM3'
+        };
+      }
+      return cert;
+    });
+
+    if (changed) {
+      this.saveCertificates(list);
     }
 
-    return data;
+    return list;
   },
 
   saveCertificates(certificates) {
