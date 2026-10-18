@@ -3,7 +3,8 @@ import {
   Plus,
   RotateCcw,
   FolderOpen,
-  Lock
+  Lock,
+  Trash2
 } from 'lucide-react';
 import PageHeader from '../components/common/PageHeader';
 import SearchBar from '../components/common/SearchBar';
@@ -58,6 +59,7 @@ export default function Projects() {
   const [editingProject, setEditingProject] = useState(null);
   const [detailProject, setDetailProject] = useState(null);
   const [deletingProject, setDeletingProject] = useState(null);
+  const [isClearAllOpen, setIsClearAllOpen] = useState(false);
 
   const loadProjects = () => {
     setProjects(projectService.getProjects());
@@ -187,15 +189,36 @@ export default function Projects() {
         subtitle="Daftar proyek pembuatan website, antarmuka pengguna, dan eksperimen kode yang telah saya kembangkan."
         actions={
           isOwner ? (
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleCreateNew}
-              id="btn-add-project"
-            >
-              <Plus size={16} />
-              <span>Tambah Proyek Baru</span>
-            </button>
+            <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              {projects.length > 0 && (
+                <button
+                  type="button"
+                  className="btn btn-glass btn-sm"
+                  onClick={() => setIsClearAllOpen(true)}
+                  style={{
+                    color: '#ff6b6b',
+                    borderColor: 'rgba(255, 107, 107, 0.35)',
+                    background: 'rgba(255, 107, 107, 0.08)',
+                    gap: '0.45rem',
+                    padding: '0.5rem 0.9rem'
+                  }}
+                  title="Hapus seluruh proyek dari portofolio"
+                  id="btn-clear-all-projects"
+                >
+                  <Trash2 size={15} />
+                  <span>Hapus Semua ({projects.length})</span>
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleCreateNew}
+                id="btn-add-project"
+              >
+                <Plus size={16} />
+                <span>Tambah Proyek Baru</span>
+              </button>
+            </div>
           ) : (
             <button
               type="button"
@@ -324,7 +347,7 @@ export default function Projects() {
         onEdit={isOwner ? handleEdit : undefined}
       />
 
-      {/* Delete Confirmation */}
+      {/* Delete Single Confirmation */}
       <ConfirmDialog
         isOpen={Boolean(deletingProject)}
         title="Hapus Proyek?"
@@ -335,6 +358,24 @@ export default function Projects() {
         onConfirm={handleConfirmDelete}
         onClose={() => setDeletingProject(null)}
         onCancel={() => setDeletingProject(null)}
+      />
+
+      {/* Clear All Confirmation */}
+      <ConfirmDialog
+        isOpen={isClearAllOpen}
+        title="Hapus Semua Proyek?"
+        message={`Apakah Anda yakin ingin menghapus seluruh ${projects.length} proyek? Semua proyek akan dibersihkan dan tidak akan muncul kembali.`}
+        confirmText="Ya, Hapus Semua"
+        cancelText="Batal"
+        danger={true}
+        onConfirm={() => {
+          projectService.clearAllProjects();
+          toast.info('Seluruh proyek berhasil dihapus.');
+          setIsClearAllOpen(false);
+          loadProjects();
+        }}
+        onClose={() => setIsClearAllOpen(false)}
+        onCancel={() => setIsClearAllOpen(false)}
       />
     </PageTransition>
   );

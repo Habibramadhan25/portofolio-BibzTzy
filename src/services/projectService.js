@@ -1,131 +1,48 @@
 import { storageService } from './storageService';
 import { activityFeedService } from './activityFeedService';
 
-export const INITIAL_PROJECTS = [
-  {
-    id: 'proj-1',
-    title: 'Website Portfolio BibTzy',
-    shortDesc: 'Portofolio interaktif bergaya anime ice blue glassmorphism dengan React dan Vite.',
-    fullDesc: 'BibTzy adalah website portofolio modern yang dirancang untuk menampilkan karya, keahlian, dan riwayat belajar siswa SMK. Mengimplementasikan glassmorphism berbasis CSS murni, penyimpanan data lokal melalui LocalStorage dan IndexedDB, live clock, pembuat CV PDF, serta sistem tema lengkap.',
-    thumbnail: '/images/avatar.jpg',
-    category: 'Website',
-    techStack: ['React', 'Vite', 'CSS Glassmorphism', 'LocalStorage', 'jsPDF'],
-    date: '2025',
-    status: 'Selesai',
-    demoUrl: 'https://bibtzy.demo.local',
-    githubUrl: 'https://github.com/Habibramadhan25/bibtzy',
-    isFavorite: true,
-    isSample: false
-  },
-  {
-    id: 'proj-2',
-    title: 'TaskMate — Smart ToDo List',
-    shortDesc: 'Aplikasi manajemen tugas harian siswa dengan kategori dan prioritas tugas.',
-    fullDesc: 'Aplikasi pencatatan tugas sekolah dan proyek pribadi dengan filter status, pengingat tenggat waktu, dan penyimpanan lokal otomatis agar produktivitas belajar tetap terjaga.',
-    thumbnail: '/images/avatar.jpg',
-    category: 'Aplikasi',
-    techStack: ['React', 'JavaScript', 'Tailwind CSS', 'LocalStorage'],
-    date: '2025',
-    status: 'Dalam Proses',
-    demoUrl: 'https://taskmate.demo.local',
-    githubUrl: 'https://github.com/Habibramadhan25/taskmate',
-    isFavorite: true,
-    isSample: false
-  },
-  {
-    id: 'proj-3',
-    title: 'Game Petualangan 2D Es Kristal',
-    shortDesc: 'Game platformer 2D bertema kristal es menggunakan Unity dan bahasa C#.',
-    fullDesc: 'Proyek pembelajaran pengembangan game 2D di SMK jurusan PPLG. Pemain mengontrol karakter untuk mengumpulkan fragmen kristal es melintasi platform rintangan dengan mekanik lompat ganda.',
-    thumbnail: '/images/avatar.jpg',
-    category: 'Game Dev',
-    techStack: ['Unity', 'C#', 'Pixel Art', 'Game Design'],
-    date: '2024',
-    status: 'Selesai',
-    demoUrl: 'https://itch.io',
-    githubUrl: 'https://github.com/Habibramadhan25/crystal-runner',
-    isFavorite: false,
-    isSample: false
-  },
-  {
-    id: 'proj-4',
-    title: 'UI/UX Redesign Portal Siswa',
-    shortDesc: 'Desain antarmuka modern untuk memudahkan siswa melihat jadwal dan nilai.',
-    fullDesc: 'Eksplorasi perancangan desain antarmuka (UI/UX) untuk portal akademik sekolah menggunakan Figma. Mengutamakan kemudahan navigasi di smartphone dan keterbacaan jadwal pelajaran.',
-    thumbnail: '/images/avatar.jpg',
-    category: 'UI/UX',
-    techStack: ['Figma', 'Wireframing', 'Prototyping', 'Design System'],
-    date: '2024',
-    status: 'Selesai',
-    demoUrl: 'https://figma.com',
-    githubUrl: '',
-    isFavorite: true,
-    isSample: false
-  },
-  {
-    id: 'proj-5',
-    title: 'Sistem Basis Data Perpustakaan',
-    shortDesc: 'Aplikasi manajemen peminjaman buku sederhana dengan relasi database MySQL.',
-    fullDesc: 'Proyek tugas basis data di kelas X PPLG untuk mempraktikkan query SQL, relasi tabel anggota, peminjaman buku, dan pembuatan laporan peminjaman dengan antarmuka PHP murni.',
-    thumbnail: '/images/avatar.jpg',
-    category: 'Backend',
-    techStack: ['PHP', 'MySQL', 'CSS3', 'Apache'],
-    date: '2024',
-    status: 'Selesai',
-    demoUrl: '',
-    githubUrl: 'https://github.com/Habibramadhan25/perpustakaan-pplg',
-    isFavorite: false,
-    isSample: false
-  },
-  {
-    id: 'proj-6',
-    title: 'Kalkulator Sains & Konverter Satuan',
-    shortDesc: 'Eksperimen manipulasi DOM JavaScript murni dengan tampilan transparan futuristik.',
-    fullDesc: 'Proyek eksplorasi JavaScript Vanilla untuk menghitung rumus matematika, konversi satuan memori komputer (Byte, KB, MB, GB), dan kalkulator bilangan biner/desimal.',
-    thumbnail: '/images/avatar.jpg',
-    category: 'JavaScript',
-    techStack: ['HTML5', 'CSS3', 'JavaScript Vanilla'],
-    date: '2024',
-    status: 'Selesai',
-    demoUrl: 'https://calc.demo.local',
-    githubUrl: 'https://github.com/Habibramadhan25/js-calculator',
-    isFavorite: false,
-    isSample: false
-  }
-];
+export const INITIAL_PROJECTS = [];
+
+const DUMMY_PROJECT_IDS = new Set([
+  'proj-1',
+  'proj-2',
+  'proj-3',
+  'proj-4',
+  'proj-5',
+  'proj-6'
+]);
 
 const STORAGE_KEY = 'projects';
 
 export const projectService = {
   getProjects() {
     let data = storageService.get(STORAGE_KEY, null);
-    if (!data || !Array.isArray(data) || data.length === 0) {
+    if (data === null || !Array.isArray(data)) {
       this.saveProjects(INITIAL_PROJECTS);
       return INITIAL_PROJECTS;
     }
-    // Auto-clean any residual "NOVA GLASS" and remove isSample flag from existing stored projects
-    let changed = false;
-    data = data.map(item => {
-      let updatedItem = { ...item };
-      if (updatedItem.isSample) {
-        updatedItem.isSample = false;
-        changed = true;
-      }
-      const hasOldBrand = (item.title && /nova\s*glass/i.test(item.title)) ||
-                          (item.shortDesc && /nova\s*glass/i.test(item.shortDesc)) ||
-                          (item.fullDesc && /nova\s*glass/i.test(item.fullDesc));
-      if (hasOldBrand) {
-        changed = true;
-        updatedItem.title = item.title ? item.title.replace(/nova\s*glass/gi, 'BibTzy') : item.title;
-        updatedItem.shortDesc = item.shortDesc ? item.shortDesc.replace(/nova\s*glass/gi, 'BibTzy') : item.shortDesc;
-        updatedItem.fullDesc = item.fullDesc ? item.fullDesc.replace(/nova\s*glass/gi, 'BibTzy') : item.fullDesc;
-      }
-      return updatedItem;
-    });
-    if (changed) {
+
+    // Auto-clean any residual dummy sample projects (proj-1 to proj-6) so old cache on mobile/browsers is wiped
+    const initialLen = data.length;
+    data = data.filter(item => !DUMMY_PROJECT_IDS.has(item.id));
+    if (data.length !== initialLen) {
       storageService.set(STORAGE_KEY, data);
     }
+
     return data;
+  },
+
+  clearAllProjects() {
+    this.saveProjects([]);
+    try {
+      activityFeedService.logActivity({
+        type: 'project',
+        title: 'Katalog Proyek Dikosongkan',
+        description: 'Semua proyek dalam katalog portofolio telah dihapus.',
+        entityId: 'all'
+      });
+    } catch (_) {}
+    return [];
   },
 
   getProjectById(id) {

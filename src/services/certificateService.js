@@ -22,17 +22,19 @@ const STORAGE_KEY = 'certificates';
 export const certificateService = {
   getCertificates() {
     const data = storageService.get(STORAGE_KEY, null);
-    // Jika data kosong atau masih berisi data sampel dummy lama tanpa sertifikat Dicoding Backend Habib
-    const isOldSampleData = Array.isArray(data) && (
-      data.length === 0 ||
-      data.some(c => c.title === 'Belajar Dasar Pemrograman Web' || c.title === 'UI/UX Design Fundamental') ||
-      !data.some(c => c.title && c.title.toLowerCase().includes('backend'))
-    );
-
-    if (!data || isOldSampleData) {
+    if (data === null || !Array.isArray(data)) {
       this.saveCertificates(INITIAL_CERTIFICATES);
       return INITIAL_CERTIFICATES;
     }
+
+    // Auto-clean old template dummy certificates if still lingering
+    const hasOldDummyTitles = data.some(c => c.title === 'Belajar Dasar Pemrograman Web' || c.title === 'UI/UX Design Fundamental');
+    if (hasOldDummyTitles) {
+      const filtered = data.filter(c => c.title !== 'Belajar Dasar Pemrograman Web' && c.title !== 'UI/UX Design Fundamental');
+      this.saveCertificates(filtered);
+      return filtered;
+    }
+
     return data;
   },
 

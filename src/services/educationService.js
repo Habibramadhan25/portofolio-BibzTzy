@@ -56,7 +56,7 @@ const STORAGE_KEY = 'timeline';
 export const educationService = {
   getTimeline() {
     const data = storageService.get(STORAGE_KEY, null);
-    if (!data || !Array.isArray(data) || data.length === 0) {
+    if (data === null || !Array.isArray(data)) {
       this.saveTimeline(INITIAL_TIMELINE);
       return INITIAL_TIMELINE;
     }
