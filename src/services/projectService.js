@@ -15,7 +15,7 @@ export const INITIAL_PROJECTS = [
     demoUrl: 'https://bibtzy.demo.local',
     githubUrl: 'https://github.com/Habibramadhan25/bibtzy',
     isFavorite: true,
-    isSample: true
+    isSample: false
   },
   {
     id: 'proj-2',
@@ -30,7 +30,7 @@ export const INITIAL_PROJECTS = [
     demoUrl: 'https://taskmate.demo.local',
     githubUrl: 'https://github.com/Habibramadhan25/taskmate',
     isFavorite: true,
-    isSample: true
+    isSample: false
   },
   {
     id: 'proj-3',
@@ -45,7 +45,7 @@ export const INITIAL_PROJECTS = [
     demoUrl: 'https://itch.io',
     githubUrl: 'https://github.com/Habibramadhan25/crystal-runner',
     isFavorite: false,
-    isSample: true
+    isSample: false
   },
   {
     id: 'proj-4',
@@ -60,7 +60,7 @@ export const INITIAL_PROJECTS = [
     demoUrl: 'https://figma.com',
     githubUrl: '',
     isFavorite: true,
-    isSample: true
+    isSample: false
   },
   {
     id: 'proj-5',
@@ -75,7 +75,7 @@ export const INITIAL_PROJECTS = [
     demoUrl: '',
     githubUrl: 'https://github.com/Habibramadhan25/perpustakaan-pplg',
     isFavorite: false,
-    isSample: true
+    isSample: false
   },
   {
     id: 'proj-6',
@@ -90,7 +90,7 @@ export const INITIAL_PROJECTS = [
     demoUrl: 'https://calc.demo.local',
     githubUrl: 'https://github.com/Habibramadhan25/js-calculator',
     isFavorite: false,
-    isSample: true
+    isSample: false
   }
 ];
 
@@ -99,26 +99,28 @@ const STORAGE_KEY = 'projects';
 export const projectService = {
   getProjects() {
     let data = storageService.get(STORAGE_KEY, null);
-    if (!data) {
+    if (!data || !Array.isArray(data) || data.length === 0) {
       this.saveProjects(INITIAL_PROJECTS);
       return INITIAL_PROJECTS;
     }
-    // Auto-clean any residual "NOVA GLASS" in existing stored projects
+    // Auto-clean any residual "NOVA GLASS" and remove isSample flag from existing stored projects
     let changed = false;
     data = data.map(item => {
+      let updatedItem = { ...item };
+      if (updatedItem.isSample) {
+        updatedItem.isSample = false;
+        changed = true;
+      }
       const hasOldBrand = (item.title && /nova\s*glass/i.test(item.title)) ||
                           (item.shortDesc && /nova\s*glass/i.test(item.shortDesc)) ||
                           (item.fullDesc && /nova\s*glass/i.test(item.fullDesc));
       if (hasOldBrand) {
         changed = true;
-        return {
-          ...item,
-          title: item.title ? item.title.replace(/nova\s*glass/gi, 'BibTzy') : item.title,
-          shortDesc: item.shortDesc ? item.shortDesc.replace(/nova\s*glass/gi, 'BibTzy') : item.shortDesc,
-          fullDesc: item.fullDesc ? item.fullDesc.replace(/nova\s*glass/gi, 'BibTzy') : item.fullDesc
-        };
+        updatedItem.title = item.title ? item.title.replace(/nova\s*glass/gi, 'BibTzy') : item.title;
+        updatedItem.shortDesc = item.shortDesc ? item.shortDesc.replace(/nova\s*glass/gi, 'BibTzy') : item.shortDesc;
+        updatedItem.fullDesc = item.fullDesc ? item.fullDesc.replace(/nova\s*glass/gi, 'BibTzy') : item.fullDesc;
       }
-      return item;
+      return updatedItem;
     });
     if (changed) {
       storageService.set(STORAGE_KEY, data);

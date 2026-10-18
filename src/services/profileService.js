@@ -16,8 +16,8 @@ export const DEFAULT_PROFILE = {
   whatsapp: '+62 812-8404-6378',
   github: 'https://github.com/Habibramadhan25',
   instagram: 'https://www.instagram.com/bibzcoto?xtok=MWY2MjJqdWx4YjR1eQ==',
-  avatar: '/images/avatar.jpg',
-  avatarType: 'preset' // 'preset' | 'custom'
+  avatar: '/images/user-avatar.jpg',
+  avatarType: 'custom' // 'preset' | 'custom'
 };
 
 const STORAGE_KEY = 'profile';
@@ -32,6 +32,13 @@ export const profileService = {
 
     let needsSave = false;
     const merged = { ...DEFAULT_PROFILE, ...stored };
+
+    // Update avatar ke foto asli Habib jika masih pakai avatar preset lama
+    if (merged.avatar === '/images/avatar.jpg') {
+      merged.avatar = '/images/user-avatar.jpg';
+      merged.avatarType = 'custom';
+      needsSave = true;
+    }
 
     // Hapus LinkedIn secara permanen sesuai permintaan
     if ('linkedin' in merged || 'linkedin' in stored) {

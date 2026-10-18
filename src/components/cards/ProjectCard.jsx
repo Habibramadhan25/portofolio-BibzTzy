@@ -291,11 +291,6 @@ export default function ProjectCard({
                 >
                   {title}
                 </h3>
-                {isSample && (
-                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', border: '1px solid var(--border-glass)', padding: '1px 6px', borderRadius: '4px' }}>
-                    Contoh
-                  </span>
-                )}
               </div>
 
               <p

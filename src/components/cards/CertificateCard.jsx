@@ -80,11 +80,6 @@ export default function CertificateCard({
           <h4 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.35 }}>
             {title}
           </h4>
-          {isSample && (
-            <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', border: '1px solid var(--border-glass)', padding: '1px 5px', borderRadius: '4px', flexShrink: 0 }}>
-              Contoh
-            </span>
-          )}
         </div>
 
         <div style={{ fontSize: '0.78rem', color: 'var(--ice-blue)', fontWeight: 600 }}>

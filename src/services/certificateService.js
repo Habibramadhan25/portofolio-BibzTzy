@@ -5,47 +5,15 @@ import { activityFeedService } from './activityFeedService';
 export const INITIAL_CERTIFICATES = [
   {
     id: 'cert-1',
-    title: 'Belajar Dasar Pemrograman Web',
+    title: 'Belajar Back-End Pemula dengan JavaScript',
     issuer: 'Dicoding Indonesia',
-    issueDate: 'Februari 2024',
+    issueDate: '24 Februari 2026',
     category: 'Web Development',
-    description: 'Menyelesaikan modul dasar HTML, CSS, dan pengantar JavaScript serta membuat website interaktif responsif.',
-    imageUrl: '/images/avatar.jpg',
-    verificationUrl: 'https://www.dicoding.com/certificates/sample-web-dasar',
-    isSample: true
-  },
-  {
-    id: 'cert-2',
-    title: 'UI/UX Design Fundamental',
-    issuer: 'Skilvul',
-    issueDate: 'Mei 2024',
-    category: 'UI/UX Design',
-    description: 'Mempelajari prinsip dasar design thinking, wireframing, prototyping di Figma, serta usability testing.',
-    imageUrl: '/images/avatar.jpg',
-    verificationUrl: 'https://skilvul.com/certificates/sample-uiux',
-    isSample: true
-  },
-  {
-    id: 'cert-3',
-    title: 'JavaScript Programming Basic',
-    issuer: 'Progate',
-    issueDate: 'November 2023',
-    category: 'Web Development',
-    description: 'Memahami variabel, fungsi bersyarat, perulangan, array, object, dan algoritma dasar pada JavaScript.',
-    imageUrl: '/images/avatar.jpg',
-    verificationUrl: 'https://progate.com/certificates/sample-js',
-    isSample: true
-  },
-  {
-    id: 'cert-4',
-    title: 'Sertifikasi Desain Grafis & Vektor',
-    issuer: 'Bina Talenta Pelajar',
-    issueDate: 'Oktober 2023',
-    category: 'Desain',
-    description: 'Pelatihan dasar desain visual, komposisi warna, tipografi, dan pembuatan aset digital grafis.',
-    imageUrl: '/images/avatar.jpg',
-    verificationUrl: '',
-    isSample: true
+    description: 'Menyelesaikan modul Belajar Back-End Pemula dengan JavaScript.',
+    imageUrl: '/images/cert-backend.jpg',
+    verificationUrl: 'https://www.dicoding.com/certificates/98XW004D9XM3',
+    credentialId: '98XW004D9XM3',
+    isSample: false
   }
 ];
 
@@ -54,7 +22,14 @@ const STORAGE_KEY = 'certificates';
 export const certificateService = {
   getCertificates() {
     const data = storageService.get(STORAGE_KEY, null);
-    if (!data) {
+    // Jika data kosong atau masih berisi data sampel dummy lama tanpa sertifikat Dicoding Backend Habib
+    const isOldSampleData = Array.isArray(data) && (
+      data.length === 0 ||
+      data.some(c => c.title === 'Belajar Dasar Pemrograman Web' || c.title === 'UI/UX Design Fundamental') ||
+      !data.some(c => c.title && c.title.toLowerCase().includes('backend'))
+    );
+
+    if (!data || isOldSampleData) {
       this.saveCertificates(INITIAL_CERTIFICATES);
       return INITIAL_CERTIFICATES;
     }
@@ -162,7 +137,13 @@ export const certificateService = {
       const fileData = await indexedDbService.getFile(cert.id);
       if (fileData) return fileData;
     }
-    return cert.imageUrl || '/images/avatar.jpg';
+    if (cert.imageUrl && cert.imageUrl !== '/images/avatar.jpg') {
+      return cert.imageUrl;
+    }
+    if (cert.title && cert.title.toLowerCase().includes('backend')) {
+      return '/images/cert-backend.jpg';
+    }
+    return cert.imageUrl || '/images/cert-backend.jpg';
   },
 
   resetCertificates() {

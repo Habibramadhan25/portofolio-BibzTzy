@@ -120,7 +120,7 @@ export default function ChibiMascot() {
   });
 
   const [isVisible, setIsVisible] = useState(true);
-  const [isBubbleOpen, setIsBubbleOpen] = useState(true);
+  const [isBubbleOpen, setIsBubbleOpen] = useState(false);
   const [isManualClosed, setIsManualClosed] = useState(false);
 
   const autoDismissTimerRef = useRef(null);
@@ -146,12 +146,11 @@ export default function ChibiMascot() {
     autoDismissTimerRef.current = setTimeout(() => {
       if (!isHoveredRef.current) {
         setIsBubbleOpen(false);
-        setIsVisible(false);
       }
     }, duration);
   }, []);
 
-  // Tampilkan panduan menu dengan ekspresi dan teks yang sesuai
+  // Tampilkan panduan menu dengan ekspresi dan teks yang sesuai saat dipicu
   const triggerGuide = useCallback((menuKey) => {
     const key = menuKey?.toLowerCase() || 'home';
     const guideItem = SIDEBAR_GUIDE_DATA[key] || SIDEBAR_GUIDE_DATA.home;
@@ -172,25 +171,25 @@ export default function ChibiMascot() {
     };
   }, []);
 
-  // Tangkap event klik menu sidebar dari Sidebar & MobileNavigation
+  // Tangkap event klik menu sidebar dari Sidebar & MobileNavigation (hanya perbarui state, jangan buka popup otomatis)
   useEffect(() => {
     const handleGuideEvent = (e) => {
       const { path, key, label } = e.detail || {};
       const resolvedKey = key || pathToMenuKey(path || label || '');
-      triggerGuide(resolvedKey);
+      const guideItem = SIDEBAR_GUIDE_DATA[resolvedKey] || SIDEBAR_GUIDE_DATA.home;
+      setGuideState(guideItem);
     };
 
     window.addEventListener('bibtzy-chibi-guide-trigger', handleGuideEvent);
     return () => window.removeEventListener('bibtzy-chibi-guide-trigger', handleGuideEvent);
-  }, [triggerGuide]);
+  }, []);
 
-  // Pantau perubahan URL (jika navigasi via link internal tanpa klik langsung pada sidebar)
+  // Pantau perubahan URL untuk sinkronisasi konteks chibi tanpa memunculkan popup otomatis
   useEffect(() => {
-    if (!isManualClosed) {
-      const key = pathToMenuKey(location.pathname);
-      triggerGuide(key);
-    }
-  }, [location.pathname, triggerGuide, isManualClosed]);
+    const key = pathToMenuKey(location.pathname);
+    const guideItem = SIDEBAR_GUIDE_DATA[key] || SIDEBAR_GUIDE_DATA.home;
+    setGuideState(guideItem);
+  }, [location.pathname]);
 
   // Penanganan tombol "×" untuk menutup bubble panduan
   const handleCloseBubble = (e) => {
@@ -206,19 +205,21 @@ export default function ChibiMascot() {
     }
   };
 
-  // Klik langsung pada karakter chibi untuk memunculkan kembali panduan atau berinteraksi
   const handleChibiClick = (e) => {
     e.stopPropagation();
     playSound?.('bubble');
 
-    if (!isBubbleOpen || !isVisible) {
+    if (!isBubbleOpen) {
       setIsVisible(true);
       setIsBubbleOpen(true);
       setIsManualClosed(false);
       scheduleAutoDismiss(6500);
     } else {
-      // Jika bubble sudah terbuka, perbarui timer dan mainkan animasi ceria
-      scheduleAutoDismiss(6500);
+      setIsBubbleOpen(false);
+      if (autoDismissTimerRef.current) {
+        clearTimeout(autoDismissTimerRef.current);
+        autoDismissTimerRef.current = null;
+      }
     }
   };
 
