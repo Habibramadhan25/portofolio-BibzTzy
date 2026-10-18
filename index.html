@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="id" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/images/bibtzy-frost-logo.png" />
+    <link rel="shortcut icon" type="image/png" href="/images/bibtzy-frost-logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="BibTzy — Portofolio Siswa SMK Habib Ramadhan, XI PPLG 3. Desain Anime Ice Blue Glassmorphism modern, futuristik, dan responsif." />
+    <meta name="theme-color" content="#070B14" />
+    <title>BibTzy — Habib Ramadhan | Portofolio Siswa SMK PPLG</title>
+
+    <!-- PWA Web App Manifest & Apple Touch -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/images/bibtzy-frost-logo.png" />
+
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+
+    <!-- Auto-Redirect to Home on Page Refresh / Reload -->
+    <script>
+      (function() {
+        try {
+          var isReload = false;
+          var navEntries = window.performance && window.performance.getEntriesByType && window.performance.getEntriesByType('navigation');
+          if (navEntries && navEntries.length > 0 && navEntries[0].type === 'reload') {
+            isReload = true;
+          } else if (window.performance && window.performance.navigation && window.performance.navigation.type === 1) {
+            isReload = true;
+          }
+          if (sessionStorage.getItem('bibtzy_is_refreshing') === 'true') {
+            isReload = true;
+            sessionStorage.removeItem('bibtzy_is_refreshing');
+          }
+
+          if (isReload && window.location.pathname !== '/' && window.location.pathname !== '') {
+            window.history.replaceState(null, '', '/');
+          }
+
+          window.addEventListener('beforeunload', function() {
+            try {
+              sessionStorage.setItem('bibtzy_is_refreshing', 'true');
+            } catch (e) {}
+          });
+
+          window.addEventListener('keydown', function(e) {
+            if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R'))) {
+              try {
+                sessionStorage.setItem('bibtzy_is_refreshing', 'true');
+              } catch (e) {}
+            }
+          });
+        } catch (err) {}
+      })();
+    </script>
+
+    <!-- Service Worker / PWA Engine (Bypass in localhost dev to prevent stale cache) -->
+    <script>
+      (function() {
+        if ('serviceWorker' in navigator) {
+          var isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+          if (isLocalhost) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              for (var i = 0; i < regs.length; i++) {
+                regs[i].unregister();
+              }
+            });
+            if ('caches' in window) {
+              caches.keys().then(function(names) {
+                for (var j = 0; j < names.length; j++) {
+                  caches.delete(names[j]);
+                }
+              });
+            }
+          } else if (window.location.protocol.startsWith('http')) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js').catch(function() {});
+            });
+          }
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

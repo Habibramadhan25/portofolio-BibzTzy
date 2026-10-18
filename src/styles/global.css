@@ -1,0 +1,234 @@
+@import './variables.css';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+  overflow-x: hidden;
+  position: relative;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+/* Ambient Anime Ice Crystal Background Gradients */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 18% 12%, rgba(var(--accent-rgb), 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 85% 25%, rgba(141, 220, 255, 0.09) 0%, transparent 45%),
+    radial-gradient(circle at 60% 80%, rgba(37, 99, 235, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 20% 90%, rgba(var(--accent-rgb), 0.06) 0%, transparent 35%);
+  pointer-events: none;
+  z-index: -1;
+  transition: opacity var(--transition-normal);
+}
+
+[data-theme="light"] body::before {
+  background: 
+    radial-gradient(circle at 15% 15%, rgba(141, 220, 255, 0.35) 0%, transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(69, 207, 255, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 50% 85%, rgba(200, 230, 255, 0.4) 0%, transparent 60%);
+}
+
+/* Subtle Ice Mesh Grid */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(141, 220, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(141, 220, 255, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+[data-theme="light"] body::after {
+  background-image: 
+    linear-gradient(rgba(2, 132, 199, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(2, 132, 199, 0.03) 1px, transparent 1px);
+}
+
+/* Typography Defaults */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--ice-blue);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+input, textarea, select {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(7, 11, 20, 0.6);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: rgba(240, 246, 252, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(141, 220, 255, 0.25);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(141, 220, 255, 0.5);
+}
+
+/* Text Selection */
+::selection {
+  background: rgba(69, 207, 255, 0.3);
+  color: #FFFFFF;
+}
+
+/* Utilities */
+.text-gradient {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.text-ice {
+  color: var(--ice-blue);
+}
+
+.glow-text {
+  text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.5);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Keyframes */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.25);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.5);
+  }
+}
+
+@keyframes floatAnim {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-float {
+  animation: floatAnim 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Ice Cyber Loading Animations */
+@keyframes iceSheen {
+  0%, 15% {
+    transform: translateX(-160%) rotate(25deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.85;
+  }
+  50%, 100% {
+    transform: translateX(160%) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+@keyframes slowCelestialSpin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes crystalDrift {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(15deg);
+  }
+}
+
+@keyframes frostBreathe {
+  0%, 100% {
+    opacity: 0.35;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+  50% {
+    opacity: 0.65;
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+}
+

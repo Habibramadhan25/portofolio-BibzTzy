@@ -1,0 +1,20 @@
+{
+  "name": "BibTzy — Habib Ramadhan",
+  "short_name": "BibTzy",
+  "description": "Portofolio Siswa SMK PPLG Habib Ramadhan dengan Anime Ice Blue Glassmorphism, Coding Activity Tracker, Learning Roadmap, Achievements, dan Developer Terminal.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070B14",
+  "theme_color": "#0D1524",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/images/bibtzy-frost-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

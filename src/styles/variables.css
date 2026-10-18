@@ -1,0 +1,238 @@
+:root {
+  /* Color Palette - Dark Mode (Default Anime Ice Blue Glassmorphism) */
+  --bg-primary: #070B14;
+  --bg-secondary: #0D1524;
+  --bg-tertiary: #131E33;
+  --bg-elevated: rgba(13, 21, 36, 0.7);
+  
+  --card-glass: rgba(255, 255, 255, 0.05);
+  --card-glass-hover: rgba(255, 255, 255, 0.09);
+  --card-glass-active: rgba(255, 255, 255, 0.13);
+  
+  --border-glass: rgba(173, 216, 255, 0.16);
+  --border-glass-hover: rgba(141, 220, 255, 0.38);
+  --border-glass-bright: rgba(141, 220, 255, 0.6);
+
+  --ice-blue: #8DDCFF;
+  --cyan: #45CFFF;
+  --deep-cyan: #0E7490;
+  --accent-color: #45CFFF;
+  --accent-rgb: 69, 207, 255;
+  --accent-gradient: linear-gradient(135deg, #8DDCFF 0%, #45CFFF 50%, #2563EB 100%);
+
+  --text-primary: #F4F8FF;
+  --text-secondary: #A5B4C9;
+  --text-muted: #64748B;
+  --text-inverse: #070B14;
+
+  --color-success: #34D399;
+  --color-success-bg: rgba(52, 211, 153, 0.12);
+  --color-error: #F87171;
+  --color-error-bg: rgba(248, 113, 113, 0.12);
+  --color-warning: #FBBF24;
+  --color-warning-bg: rgba(251, 191, 36, 0.12);
+
+  /* Shadows & Glows */
+  --glow-subtle: 0 0 20px rgba(69, 207, 255, 0.15);
+  --glow-medium: 0 0 30px rgba(69, 207, 255, 0.3);
+  --glow-intense: 0 0 45px rgba(141, 220, 255, 0.5);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+  --shadow-dropdown: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
+
+  /* Glassmorphism Specs */
+  --blur-glass: 16px;
+  --blur-header: 20px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Transitions */
+  --transition-fast: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Layout dimensions */
+  --sidebar-width: 270px;
+  --sidebar-collapsed-width: 80px;
+  --topbar-height: 70px;
+  --mobile-nav-height: 64px;
+}
+
+/* Light Theme Variables */
+[data-theme="light"] {
+  --bg-primary: #F0F6FC;
+  --bg-secondary: #E3EFFB;
+  --bg-tertiary: #D4E5F7;
+  --bg-elevated: rgba(255, 255, 255, 0.9);
+
+  --card-glass: rgba(255, 255, 255, 0.82);
+  --card-glass-hover: rgba(255, 255, 255, 0.94);
+  --card-glass-active: #FFFFFF;
+
+  --border-glass: rgba(141, 220, 255, 0.45);
+  --border-glass-hover: rgba(45, 156, 219, 0.65);
+  --border-glass-bright: #0284C7;
+
+  --ice-blue: #0284C7;
+  --cyan: #0EA5E9;
+  --deep-cyan: #0369A1;
+  --accent-color: #0284C7;
+  --accent-rgb: 2, 132, 199;
+  --accent-gradient: linear-gradient(135deg, #0284C7 0%, #38BDF8 50%, #0369A1 100%);
+
+  --text-primary: #0B132B;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --text-inverse: #F4F8FF;
+
+  --color-success: #059669;
+  --color-success-bg: rgba(5, 150, 105, 0.12);
+  --color-error: #DC2626;
+  --color-error-bg: rgba(220, 38, 38, 0.12);
+  --color-warning: #D97706;
+  --color-warning-bg: rgba(217, 119, 6, 0.12);
+
+  --glow-subtle: 0 4px 20px rgba(2, 132, 199, 0.15);
+  --glow-medium: 0 6px 30px rgba(2, 132, 199, 0.22);
+  --glow-intense: 0 8px 36px rgba(2, 132, 199, 0.3);
+  --shadow-glass: 0 8px 30px rgba(15, 23, 42, 0.08);
+  --shadow-dropdown: 0 12px 35px rgba(15, 23, 42, 0.15);
+}
+
+/* Accent Color Variations */
+[data-accent="ice-blue"] {
+  --accent-color: #8DDCFF;
+  --accent-rgb: 141, 220, 255;
+  --accent-gradient: linear-gradient(135deg, #FFFFFF 0%, #8DDCFF 50%, #45CFFF 100%);
+}
+[data-accent="cyan"] {
+  --accent-color: #45CFFF;
+  --accent-rgb: 69, 207, 255;
+  --accent-gradient: linear-gradient(135deg, #8DDCFF 0%, #45CFFF 50%, #2563EB 100%);
+}
+[data-accent="frost-purple"] {
+  --accent-color: #C084FC;
+  --accent-rgb: 192, 132, 252;
+  --accent-gradient: linear-gradient(135deg, #E9D5FF 0%, #C084FC 50%, #8B5CF6 100%);
+}
+[data-accent="aurora-green"] {
+  --accent-color: #34D399;
+  --accent-rgb: 52, 211, 153;
+  --accent-gradient: linear-gradient(135deg, #A7F3D0 0%, #34D399 50%, #059669 100%);
+}
+[data-accent="amber-gold"] {
+  --accent-color: #FBBF24;
+  --accent-rgb: 251, 191, 36;
+  --accent-gradient: linear-gradient(135deg, #FDE68A 0%, #FBBF24 50%, #D97706 100%);
+}
+
+/* =========================================================================
+   THEME PRESETS (APPEARANCE & PERSONALIZATION)
+   ========================================================================= */
+
+/* 1. Ice Blue (Default Anime Glass) */
+[data-preset="ice-blue"] {
+  --bg-primary: #070B14;
+  --bg-secondary: #0D1524;
+  --ice-blue: #8DDCFF;
+  --cyan: #45CFFF;
+  --accent-color: #45CFFF;
+  --accent-rgb: 69, 207, 255;
+  --border-glass: rgba(173, 216, 255, 0.18);
+  --border-glass-bright: rgba(141, 220, 255, 0.6);
+}
+
+/* 2. Midnight Cyan */
+[data-preset="midnight-cyan"] {
+  --bg-primary: #040D17;
+  --bg-secondary: #091A2B;
+  --ice-blue: #38BDF8;
+  --cyan: #00F0FF;
+  --accent-color: #00F0FF;
+  --accent-rgb: 0, 240, 255;
+  --border-glass: rgba(0, 240, 255, 0.18);
+  --border-glass-bright: rgba(0, 240, 255, 0.6);
+  --glow-subtle: 0 0 22px rgba(0, 240, 255, 0.2);
+}
+
+/* 3. Violet Nebula */
+[data-preset="violet-nebula"] {
+  --bg-primary: #090614;
+  --bg-secondary: #130E29;
+  --ice-blue: #C084FC;
+  --cyan: #A855F7;
+  --accent-color: #C084FC;
+  --accent-rgb: 192, 132, 252;
+  --border-glass: rgba(192, 132, 252, 0.18);
+  --border-glass-bright: rgba(192, 132, 252, 0.6);
+  --glow-subtle: 0 0 22px rgba(192, 132, 252, 0.2);
+}
+
+/* 4. Aurora */
+[data-preset="aurora"] {
+  --bg-primary: #041210;
+  --bg-secondary: #08211D;
+  --ice-blue: #5EEAD4;
+  --cyan: #2DD4BF;
+  --accent-color: #2DD4BF;
+  --accent-rgb: 45, 212, 191;
+  --border-glass: rgba(45, 212, 191, 0.18);
+  --border-glass-bright: rgba(45, 212, 191, 0.6);
+  --glow-subtle: 0 0 22px rgba(45, 212, 191, 0.2);
+}
+
+/* 5. Minimal Dark (Monochrome Sleek) */
+[data-preset="minimal-dark"] {
+  --bg-primary: #09090B;
+  --bg-secondary: #121215;
+  --ice-blue: #E4E4E7;
+  --cyan: #D4D4D8;
+  --accent-color: #E4E4E7;
+  --accent-rgb: 228, 228, 231;
+  --border-glass: rgba(255, 255, 255, 0.12);
+  --border-glass-bright: rgba(255, 255, 255, 0.35);
+  --glow-subtle: 0 0 15px rgba(255, 255, 255, 0.08);
+}
+
+/* 6. Light Glass */
+[data-preset="light-glass"] {
+  --bg-primary: #F0F6FC;
+  --bg-secondary: #E3EFFB;
+  --bg-tertiary: #D4E5F7;
+  --bg-elevated: rgba(255, 255, 255, 0.9);
+  --card-glass: rgba(255, 255, 255, 0.85);
+  --card-glass-hover: #FFFFFF;
+  --border-glass: rgba(141, 220, 255, 0.45);
+  --border-glass-bright: #0284C7;
+  --ice-blue: #0284C7;
+  --cyan: #0EA5E9;
+  --accent-color: #0284C7;
+  --accent-rgb: 2, 132, 199;
+  --text-primary: #0B132B;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --text-inverse: #F4F8FF;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.reduce-motion *, .reduce-motion ::before, .reduce-motion ::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

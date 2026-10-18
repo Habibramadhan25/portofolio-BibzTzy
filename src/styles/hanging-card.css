@@ -1,0 +1,520 @@
+/* ==========================================================================
+   INTERACTIVE 3D HANGING ID CARD (DC CARD)
+   ========================================================================== */
+
+.hanging-card-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  perspective: 1200px;
+  user-select: none;
+  touch-action: pan-y;
+}
+
+/* Ceiling Anchor Point */
+.hanging-card-ceiling-anchor {
+  width: 44px;
+  height: 8px;
+  background: linear-gradient(180deg, #1A1F2C 0%, #080B12 100%);
+  border-radius: 4px 4px 2px 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  z-index: 5;
+}
+
+/* Lanyard Strap (Tali) */
+.hanging-card-strap {
+  width: 26px;
+  height: 95px;
+  background: #0B0E14;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    inset 0 0 8px rgba(0, 0, 0, 0.9),
+    0 4px 14px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  transform-origin: top center;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 4;
+}
+
+/* Subtle fabric texture on strap */
+.hanging-card-strap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0.03) 0px,
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+}
+
+/* Lanyard Text "DC CARD" */
+.hanging-card-strap-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-family: var(--font-mono, monospace);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.65);
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  animation: strapTextPulse 4s ease-in-out infinite;
+}
+
+@keyframes strapTextPulse {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 0.95; color: #FFFFFF; }
+}
+
+/* Metal Clip & Clasp */
+.hanging-card-clip-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -2px;
+  margin-bottom: -10px;
+  z-index: 6;
+  position: relative;
+}
+
+.hanging-card-clasp {
+  width: 22px;
+  height: 14px;
+  background: linear-gradient(180deg, #3A4252 0%, #1F2430 50%, #4D576C 100%);
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.hanging-card-clasp::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.hanging-card-ring {
+  width: 14px;
+  height: 18px;
+  border: 2px solid #8B94A5;
+  border-radius: 7px;
+  margin-top: -3px;
+  background: transparent;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: 6;
+}
+
+/* The Hanging Card 3D Pivot Wrapper */
+.hanging-card-pivot {
+  transform-origin: top center;
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+/* Idle Sway Animation */
+.hanging-card-sway {
+  animation: hangingCardIdle 6s ease-in-out infinite;
+}
+
+@keyframes hangingCardIdle {
+  0% {
+    transform: rotateZ(0deg) rotateY(0deg) rotateX(0deg);
+  }
+  25% {
+    transform: rotateZ(1.3deg) rotateY(2.2deg) rotateX(-1deg);
+  }
+  50% {
+    transform: rotateZ(0deg) rotateY(0deg) rotateX(0.8deg);
+  }
+  75% {
+    transform: rotateZ(-1.3deg) rotateY(-2.2deg) rotateX(-1deg);
+  }
+  100% {
+    transform: rotateZ(0deg) rotateY(0deg) rotateX(0deg);
+  }
+}
+
+/* Card Badge Outer Frame */
+.hanging-card-badge {
+  width: 100%;
+  background: #070A11;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 20px;
+  padding: 1.25rem 1.15rem 1.1rem;
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  box-shadow: 
+    0 16px 40px rgba(0, 0, 0, 0.75),
+    0 0 35px rgba(255, 255, 255, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  cursor: grab;
+  transition: box-shadow 0.3s ease;
+}
+
+.hanging-card-badge:active {
+  cursor: grabbing;
+}
+
+/* Dark Background with Subtle Cyber Grid */
+.hanging-card-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-color: #060910;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.09) 0%, transparent 65%);
+  background-size: 16px 16px, 16px 16px, 100% 100%;
+  pointer-events: none;
+  border-radius: 18px;
+}
+
+/* Card Slot Cutout at Top */
+.hanging-card-slot {
+  width: 44px;
+  height: 10px;
+  margin: -0.35rem auto 1rem;
+  background: #020408;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-radius: 6px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.9);
+  position: relative;
+  z-index: 2;
+}
+
+/* Card Header Section */
+.hanging-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  position: relative;
+  z-index: 2;
+}
+
+.hanging-card-logo-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.hanging-card-chip {
+  width: 26px;
+  height: 19px;
+  background: linear-gradient(135deg, #C5C9D3 0%, #838A9C 50%, #B0B5C4 100%);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.hanging-card-chip::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 0;
+  right: 0;
+  bottom: 4px;
+  border-top: 1px solid rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+.hanging-card-chip::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 9px;
+  right: 9px;
+  border-left: 1px solid rgba(0, 0, 0, 0.4);
+  border-right: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+.hanging-card-type-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #FFFFFF;
+  text-transform: uppercase;
+}
+
+.hanging-card-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: 0.8px;
+}
+
+.hanging-card-status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #34D399;
+  box-shadow: 0 0 6px #34D399;
+  animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Portrait Photo Frame with White Border */
+.hanging-card-photo-frame {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 250px;
+  border: 2px solid #FFFFFF;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  background: #000000;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+  z-index: 2;
+}
+
+.hanging-card-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: grayscale(100%) contrast(1.18) brightness(1.05);
+  transition: filter 0.4s ease, transform 0.4s ease;
+}
+
+.hanging-card-badge:hover .hanging-card-photo-img {
+  transform: scale(1.02);
+}
+
+/* Reticle Viewfinder Markers */
+.hanging-card-reticle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+}
+
+.hanging-card-reticle.tl {
+  top: 8px;
+  left: 8px;
+  border-top: 2px solid #FFFFFF;
+  border-left: 2px solid #FFFFFF;
+}
+
+.hanging-card-reticle.tr {
+  top: 8px;
+  right: 8px;
+  border-top: 2px solid #FFFFFF;
+  border-right: 2px solid #FFFFFF;
+}
+
+.hanging-card-reticle.bl {
+  bottom: 8px;
+  left: 8px;
+  border-bottom: 2px solid #FFFFFF;
+  border-left: 2px solid #FFFFFF;
+}
+
+.hanging-card-reticle.br {
+  bottom: 8px;
+  right: 8px;
+  border-bottom: 2px solid #FFFFFF;
+  border-right: 2px solid #FFFFFF;
+}
+
+/* Identity Details */
+.hanging-card-details {
+  margin-top: 0.95rem;
+  position: relative;
+  z-index: 2;
+}
+
+.hanging-card-name {
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin: 0 0 0.2rem 0;
+}
+
+.hanging-card-role {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.02em;
+  margin-bottom: 0.25rem;
+}
+
+.hanging-card-school {
+  font-size: 0.72rem;
+  font-family: var(--font-mono, monospace);
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.5px;
+}
+
+/* Footer Section: Barcode & Hologram */
+.hanging-card-footer {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 2;
+}
+
+/* Barcode */
+.hanging-card-barcode-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hanging-card-barcode-lines {
+  display: flex;
+  align-items: flex-end;
+  height: 22px;
+  gap: 2px;
+}
+
+.hanging-card-bar {
+  background: #FFFFFF;
+  height: 100%;
+  border-radius: 0.5px;
+}
+
+.hanging-card-barcode-num {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 1.5px;
+}
+
+/* Holographic Cyber Seal */
+.hanging-card-holo-seal {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: conic-gradient(
+    from 180deg,
+    rgba(255, 255, 255, 0.2),
+    rgba(69, 207, 255, 0.35),
+    rgba(192, 132, 252, 0.35),
+    rgba(255, 255, 255, 0.4),
+    rgba(69, 207, 255, 0.35),
+    rgba(255, 255, 255, 0.2)
+  );
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 8px;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.5px;
+  animation: holoRotate 8s linear infinite;
+}
+
+@keyframes holoRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Dynamic Glare & Reflection Overlay */
+.hanging-card-glare {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: overlay;
+  transition: opacity 0.2s ease;
+}
+
+/* Subtle Card Thickness / Bevel */
+.hanging-card-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+/* Interactive Hint Bar Below */
+.hanging-card-hint {
+  margin-top: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 320px;
+  padding: 0 0.25rem;
+  font-size: 0.76rem;
+  color: var(--text-secondary, #94A3B8);
+}
+
+.hanging-card-hint-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--ice-blue, #8DDCFF);
+}
+
+/* Accessibility: prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .hanging-card-sway,
+  .hanging-card-strap-text,
+  .hanging-card-holo-seal,
+  .hanging-card-status-dot {
+    animation: none !important;
+  }
+
+  .hanging-card-badge,
+  .hanging-card-pivot,
+  .hanging-card-strap {
+    transform: none !important;
+    transition: none !important;
+  }
+}
