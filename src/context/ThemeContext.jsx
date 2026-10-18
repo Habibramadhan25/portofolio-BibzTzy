@@ -53,7 +53,7 @@ export const THEME_PRESETS = [
 
 export const BACKGROUND_TYPES = [
   { id: 'default', name: 'Default Ice Glow', desc: 'Gradasi ambient cyan-es biru dinamis' },
-  { id: 'anime', name: 'Anime Theme', desc: 'Latar ilustrasi anime developer aesthetics' },
+  { id: 'anime', name: 'Anime Theme', desc: 'Latar anime Gojo Satoru (Jujutsu Kaisen)' },
   { id: 'minimal', name: 'Minimal Ambient', desc: 'Latar gelap bersih dengan pencahayaan lembut' },
   { id: 'custom', name: 'Custom Wallpaper', desc: 'Wallpaper unggahan dari perangkat Anda' },
   { id: 'none', name: 'Tanpa Dekorasi', desc: 'Warna latar solid murni' }

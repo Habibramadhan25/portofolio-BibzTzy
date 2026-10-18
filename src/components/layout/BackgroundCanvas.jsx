@@ -31,9 +31,9 @@ export default function BackgroundCanvas() {
   let wallpaperOpacity = 0.85;
 
   if (bgType === 'anime') {
-    wallpaperSrc = '/images/mockup_reference.jpg';
+    wallpaperSrc = '/images/anime-wallpaper.jpg';
     wallpaperType = 'image';
-    wallpaperOpacity = 0.45;
+    wallpaperOpacity = 0.55;
   } else if (customWallpaper && bgType === 'custom') {
     if (typeof customWallpaper === 'string') {
       wallpaperSrc = customWallpaper;
@@ -268,7 +268,7 @@ export default function BackgroundCanvas() {
       {/* Background Image Layer (or fallback if video failed) */}
       {wallpaperSrc && (wallpaperType === 'image' || (wallpaperType === 'video' && videoError)) && (
         <img
-          src={wallpaperType === 'image' ? wallpaperSrc : '/images/mockup_reference.jpg'}
+          src={wallpaperType === 'image' ? wallpaperSrc : '/images/anime-wallpaper.jpg'}
           alt=""
           className="bg-canvas-image-tag"
           style={{
