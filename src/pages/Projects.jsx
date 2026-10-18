@@ -267,8 +267,8 @@ export default function Projects() {
       {filteredProjects.length > 0 ? (
         <StaggerGrid style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 360px))',
-          gap: '1.5rem',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 420px))',
+          gap: '1.75rem',
           justifyContent: 'start'
         }}>
           {filteredProjects.map(project => (

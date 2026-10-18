@@ -23,18 +23,19 @@ export default function CertificateCard({
   }, [certificate]);
 
   return (
-    <GlassCard interactive style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '100%', maxWidth: '360px' }}>
+    <GlassCard interactive style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', height: '100%', maxWidth: '520px', width: '100%' }}>
       {/* Thumbnail */}
       <div
         style={{
           width: '100%',
-          height: '135px',
+          aspectRatio: '16 / 10',
+          minHeight: '200px',
           borderRadius: 'var(--radius-md)',
           overflow: 'hidden',
           background: '#090F1C',
           position: 'relative',
           cursor: 'pointer',
-          marginBottom: '0.75rem',
+          marginBottom: '1rem',
           border: '1px solid var(--border-glass)'
         }}
         onClick={() => onPreview(certificate, mediaSrc)}
@@ -53,47 +54,47 @@ export default function CertificateCard({
 
         <div style={{
           position: 'absolute',
-          top: '0.5rem',
-          left: '0.5rem'
+          top: '0.65rem',
+          left: '0.65rem'
         }}>
-          <span className="badge badge-ice" style={{ backdropFilter: 'blur(8px)', background: 'rgba(7, 11, 20, 0.75)', fontSize: '0.72rem', padding: '2px 7px' }}>
-            <Award size={11} style={{ marginRight: '3px' }} />
+          <span className="badge badge-ice" style={{ backdropFilter: 'blur(8px)', background: 'rgba(7, 11, 20, 0.75)', fontSize: '0.75rem', padding: '3px 9px' }}>
+            <Award size={12} style={{ marginRight: '4px' }} />
             {category || 'Sertifikasi'}
           </span>
         </div>
 
         <div style={{
           position: 'absolute',
-          bottom: '0.5rem',
-          right: '0.5rem'
+          bottom: '0.65rem',
+          right: '0.65rem'
         }}>
-          <span className="badge" style={{ background: 'rgba(0, 0, 0, 0.65)', color: 'var(--text-secondary)', fontSize: '0.7rem', padding: '2px 6px' }}>
-            <Calendar size={10} style={{ marginRight: '3px' }} />
+          <span className="badge" style={{ background: 'rgba(0, 0, 0, 0.75)', color: 'var(--text-secondary)', fontSize: '0.74rem', padding: '3px 8px' }}>
+            <Calendar size={11} style={{ marginRight: '4px' }} />
             {issueDate}
           </span>
         </div>
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-          <h4 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.35 }}>
+          <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.4 }}>
             {title}
           </h4>
         </div>
 
-        <div style={{ fontSize: '0.78rem', color: 'var(--ice-blue)', fontWeight: 600 }}>
+        <div style={{ fontSize: '0.86rem', color: 'var(--ice-blue)', fontWeight: 600 }}>
           {issuer}
         </div>
 
         {description && (
           <p style={{
-            fontSize: '0.78rem',
+            fontSize: '0.84rem',
             color: 'var(--text-secondary)',
-            lineHeight: '1.45',
-            marginTop: '0.15rem',
+            lineHeight: '1.55',
+            marginTop: '0.2rem',
             display: '-webkit-box',
-            WebkitLineClamp: 2,
+            WebkitLineClamp: 3,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden'
           }}>
@@ -104,22 +105,22 @@ export default function CertificateCard({
 
       {/* Action Footer */}
       <div style={{
-        marginTop: '0.75rem',
-        paddingTop: '0.6rem',
+        marginTop: '1.1rem',
+        paddingTop: '0.85rem',
         borderTop: '1px solid var(--border-glass)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.4rem'
+        gap: '0.55rem'
       }}>
         {/* Row 1: Tombol Aksi Publik (Lihat & Verifikasi) */}
-        <div style={{ display: 'flex', gap: '0.4rem', width: '100%' }}>
+        <div style={{ display: 'flex', gap: '0.55rem', width: '100%' }}>
           <button
             type="button"
             className="btn btn-primary btn-sm"
             onClick={() => onPreview(certificate, mediaSrc)}
-            style={{ flex: 1, justifyContent: 'center', minHeight: '30px', padding: '0.3rem 0.5rem', fontSize: '0.78rem' }}
+            style={{ flex: 1, justifyContent: 'center', minHeight: '36px', padding: '0.45rem 0.85rem', fontSize: '0.82rem', gap: '0.4rem' }}
           >
-            <Eye size={13} />
+            <Eye size={14} />
             <span>Lihat</span>
           </button>
 
@@ -130,9 +131,9 @@ export default function CertificateCard({
               rel="noopener noreferrer"
               className="btn btn-glass btn-sm"
               title="Buka tautan verifikasi sertifikat"
-              style={{ flex: 1, justifyContent: 'center', minHeight: '30px', padding: '0.3rem 0.5rem', fontSize: '0.78rem' }}
+              style={{ flex: 1, justifyContent: 'center', minHeight: '36px', padding: '0.45rem 0.85rem', fontSize: '0.82rem', gap: '0.4rem' }}
             >
-              <ExternalLink size={13} />
+              <ExternalLink size={14} />
               <span>Verifikasi</span>
             </a>
           )}
@@ -140,7 +141,7 @@ export default function CertificateCard({
 
         {/* Row 2: Tombol Manajemen Pemilik (Edit & Hapus) */}
         {(onEdit || onDelete) && (
-          <div style={{ display: 'flex', gap: '0.4rem', width: '100%' }}>
+          <div style={{ display: 'flex', gap: '0.55rem', width: '100%' }}>
             {onEdit && (
               <button
                 type="button"
@@ -150,16 +151,16 @@ export default function CertificateCard({
                 style={{
                   flex: 1,
                   justifyContent: 'center',
-                  padding: '0.3rem 0.5rem',
-                  fontSize: '0.76rem',
-                  gap: '0.3rem',
+                  padding: '0.4rem 0.8rem',
+                  fontSize: '0.8rem',
+                  gap: '0.4rem',
                   color: 'var(--ice-blue)',
                   borderColor: 'rgba(69, 207, 255, 0.35)',
                   background: 'rgba(69, 207, 255, 0.08)',
-                  minHeight: '28px'
+                  minHeight: '34px'
                 }}
               >
-                <Edit3 size={12} />
+                <Edit3 size={13} />
                 <span>Edit</span>
               </button>
             )}
@@ -172,16 +173,16 @@ export default function CertificateCard({
                 style={{
                   flex: 1,
                   justifyContent: 'center',
-                  padding: '0.3rem 0.5rem',
-                  fontSize: '0.76rem',
-                  gap: '0.3rem',
+                  padding: '0.4rem 0.8rem',
+                  fontSize: '0.8rem',
+                  gap: '0.4rem',
                   color: '#f87171',
                   borderColor: 'rgba(239, 68, 68, 0.35)',
                   background: 'rgba(239, 68, 68, 0.08)',
-                  minHeight: '28px'
+                  minHeight: '34px'
                 }}
               >
-                <Trash2 size={12} />
+                <Trash2 size={13} />
                 <span>Hapus</span>
               </button>
             )}

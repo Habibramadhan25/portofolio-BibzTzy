@@ -218,8 +218,8 @@ export default function Certificates() {
       {filteredCertificates.length > 0 ? (
         <StaggerGrid style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 350px))',
-          gap: '1.5rem',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 380px), 520px))',
+          gap: '2rem',
           justifyContent: 'start'
         }}>
           {filteredCertificates.map(cert => (
