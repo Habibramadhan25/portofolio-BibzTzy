@@ -102,19 +102,14 @@ export default function Home() {
   };
 
   return (
-    <PageTransition style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+    <PageTransition className="home-page-transition" style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
       {/* =========================================================================
           HERO SECTION
           ========================================================================= */}
-      <section className="hero-section" style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
-        gap: '2.5rem',
-        alignItems: 'center'
-      }}>
+      <section className="hero-section">
         {/* Left Column: Greeting & Info */}
-        <MotionItem style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        <MotionItem className="hero-info-col">
+          <div className="hero-badges">
             <span className="badge badge-ice animate-pulse-glow" style={{ padding: '0.4rem 1rem' }}>
               <Sparkles size={14} className="text-ice" />
               BIBTZY • SMK PPLG PORTFOLIO
@@ -126,28 +121,14 @@ export default function Home() {
           </div>
 
           <div>
-            <h1 style={{
-              fontSize: 'clamp(2.2rem, 5vw, 3.4rem)',
-              fontWeight: 800,
-              lineHeight: 1.15,
-              letterSpacing: '-0.02em',
-              marginBottom: '0.5rem'
-            }}>
+            <h1 className="hero-title">
               Halo, Saya <br />
               <span className="text-gradient glow-text">
                 {profile?.name || 'Habib Ramadhan'}
               </span>
             </h1>
 
-            <p style={{
-              fontSize: '1.1rem',
-              color: 'var(--ice-blue)',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              flexWrap: 'wrap'
-            }}>
+            <p className="hero-subtitle">
               <span>{profile?.status || 'Siswa SMK'}</span>
               <span>•</span>
               <span style={{ color: 'var(--text-primary)' }}>{profile?.class || 'XI PPLG 3'}</span>
@@ -156,30 +137,18 @@ export default function Home() {
             </p>
           </div>
 
-
-          <p style={{
-            fontSize: '1rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.7,
-            maxWidth: '560px'
-          }}>
+          <p className="hero-bio">
             {profile?.bio || 'Siswa SMK yang tertarik pada pengembangan website, pemrograman, teknologi, dan desain antarmuka.'}
           </p>
 
           {/* Action CTA Buttons */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            flexWrap: 'wrap',
-            marginTop: '0.5rem'
-          }}>
-            <Link to="/projects" className="btn btn-primary" id="hero-btn-projects" style={{ flex: '1 1 auto', minWidth: '150px' }}>
+          <div className="hero-actions">
+            <Link to="/projects" className="btn btn-primary" id="hero-btn-projects">
               <span>Lihat Portofolio</span>
               <ArrowRight size={16} />
             </Link>
 
-            <Link to="/contact" className="btn btn-outline" id="hero-btn-contact" style={{ flex: '1 1 auto', minWidth: '130px' }}>
+            <Link to="/contact" className="btn btn-outline" id="hero-btn-contact">
               <Mail size={16} />
               <span>Hubungi Saya</span>
             </Link>
@@ -191,7 +160,6 @@ export default function Home() {
               disabled={isDownloadingCV}
               id="hero-btn-cv"
               title="Unduh CV PDF langsung"
-              style={{ flex: '1 1 auto', minWidth: '120px' }}
             >
               <Download size={16} />
               <span>{isDownloadingCV ? 'Membuat PDF...' : 'Unduh CV'}</span>
@@ -199,7 +167,7 @@ export default function Home() {
           </div>
 
           {/* Quick Tech Tags */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', paddingTop: '0.5rem' }}>
+          <div className="hero-tech-tags">
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>Teknologi Inti:</span>
             {['React', 'Vite', 'CSS Glassmorphism', 'JavaScript', 'PHP', 'MySQL'].map(t => (
               <span key={t} className="badge" style={{ background: 'var(--card-glass)', border: '1px solid var(--border-glass)', fontSize: '0.75rem' }}>

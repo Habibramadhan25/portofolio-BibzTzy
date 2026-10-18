@@ -151,11 +151,11 @@ export default function AppLayout() {
       {/* Global Owner Authentication PIN Modal */}
       <OwnerAuthModal />
 
-      {/* Maskot Chibi Interaktif Welcome BibTzy */}
-      <ChibiMascot />
-
       {/* Floating Real-Time Live Contact & WhatsApp Widget */}
       <RealtimeLiveWidget profile={profile} />
+
+      {/* Maskot Chibi Interaktif Pendamping Halaman */}
+      <ChibiMascot />
 
       {/* Floating Music Bar (Spotify Track: The One That Got Away - Katy Perry) */}
       <FloatingMusicBar />

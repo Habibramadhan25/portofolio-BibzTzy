@@ -299,6 +299,7 @@
 .page-container {
   flex: 1;
   padding: 2.25rem 2.5rem;
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
   max-width: 1360px;
   width: 100%;
   margin: 0 auto;
@@ -390,6 +391,72 @@
 }
 
 /* ==========================================================================
+   HERO SECTION RESPONSIVE SYSTEM
+   ========================================================================== */
+.hero-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.hero-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.hero-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.hero-subtitle {
+  font-size: 1.05rem;
+  color: var(--ice-blue);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  line-height: 1.5;
+}
+
+.hero-bio {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 560px;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.hero-tech-tags {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+}
+
+/* ==========================================================================
    RESPONSIVE MEDIA QUERIES (Mobile-First Breakdown)
    ========================================================================== */
 
@@ -418,7 +485,8 @@
   }
 
   .page-container {
-    padding: 1.75rem 1.5rem;
+    padding: 2rem 1.5rem;
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
   }
 
   .topbar {
@@ -437,30 +505,90 @@
   }
 
   .page-container {
-    padding: 1.5rem 1.15rem;
+    padding: 1.5rem 1.25rem;
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .hero-section {
+    gap: 2rem !important;
+  }
+
+  .hero-info-col {
+    gap: 1.1rem;
+  }
+
+  .home-page-transition {
+    gap: 2.25rem !important;
   }
 }
 
 /* Standard Mobile Screens (<= 640px) */
 @media (max-width: 640px) {
   .page-container {
-    padding: 1.25rem 0.85rem;
+    padding: 1.35rem 1.15rem;
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
   }
 
   .topbar {
-    padding: 0 0.85rem;
+    padding: 0 1rem;
     height: 58px;
   }
 
   .topbar-page-badge {
-    max-width: 150px;
+    max-width: min(220px, 48vw);
     padding: 0.35rem 0.65rem;
-    font-size: 0.78rem;
+    font-size: 0.8rem;
+  }
+
+  .hero-title {
+    font-size: clamp(1.65rem, 5.5vw, 2.15rem);
+    line-height: 1.25;
+  }
+
+  .hero-subtitle {
+    font-size: 0.88rem;
+    gap: 0.35rem;
+  }
+
+  .hero-bio {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .hero-actions {
+    gap: 0.6rem;
+  }
+
+  .hero-actions .btn {
+    min-height: 44px;
+    font-size: 0.88rem;
+  }
+
+  .hero-actions #hero-btn-projects {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .hero-actions #hero-btn-contact,
+  .hero-actions #hero-btn-cv {
+    flex: 1 1 calc(50% - 0.35rem);
+    min-width: 0;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .hero-tech-tags {
+    gap: 0.35rem;
+    padding-top: 0.25rem;
+  }
+
+  .hero-tech-tags .badge {
+    font-size: 0.72rem !important;
+    padding: 0.25rem 0.6rem !important;
   }
 
   .footer {
-    padding: 1.5rem 0.85rem;
-    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    padding: 1.5rem 1rem;
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
     gap: 0.5rem;
   }
 
@@ -477,30 +605,37 @@
 /* Compact Mobile Screens (<= 414px: iPhone 11/12/13/14, Galaxy, Pixel) */
 @media (max-width: 414px) {
   .topbar-page-badge {
-    max-width: 120px;
+    max-width: min(180px, 46vw);
   }
 
   .topbar-page-badge span {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
   }
 
   .page-container {
-    padding: 1.15rem 0.75rem;
+    padding: 1.25rem 1rem;
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .hero-badges .badge {
+    font-size: 0.72rem;
+    padding: 0.3rem 0.75rem;
   }
 }
 
 /* Very Small Mobile Screens (<= 360px: Galaxy S8, iPhone SE 1st, compact phones) */
 @media (max-width: 360px) {
   .topbar {
-    padding: 0 0.5rem;
+    padding: 0 0.75rem;
   }
 
   .topbar-page-badge {
-    max-width: 95px;
+    max-width: 140px;
     padding: 0.3rem 0.5rem;
   }
 
   .page-container {
-    padding: 1rem 0.6rem;
+    padding: 1.1rem 0.85rem;
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
   }
 }

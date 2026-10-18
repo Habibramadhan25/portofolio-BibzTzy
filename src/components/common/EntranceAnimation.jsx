@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Volume2, VolumeX, FastForward, Loader2 } from 'lucide-react';
+import { Play, Loader2 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { profileService } from '../../services/profileService';
 import { projectService } from '../../services/projectService';
 import { educationService } from '../../services/educationService';
 import { certificateService } from '../../services/certificateService';
 
-// Partikel es kristal melayang halus dengan variasi posisi, ukuran, dan durasi
+// Partikel es kristal melayang menggunakan CSS murni (GPU compositor) agar video 100% mulus tanpa lag
 const ICE_PARTICLES = [
   { id: 1, top: '15%', left: '12%', size: 4, duration: 6.2, delay: 0.2, opacity: 0.55 },
   { id: 2, top: '22%', right: '14%', size: 5, duration: 7.4, delay: 1.1, opacity: 0.65 },
@@ -45,7 +45,7 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
     }
   });
 
-  // State untuk Video Intro (10 Detik)
+  // Otomatis suara aktif (muted = false) sesuai permintaan pengguna
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isAutoplayBlocked, setIsAutoplayBlocked] = useState(false);
@@ -62,29 +62,23 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
     }
   }, []);
 
-  // Preload data secara hening di background selama intro 10 detik berjalan
+  // Preload data secara bertahap setelah video mulai berputar agar tidak berebut CPU/bandwidth
   useEffect(() => {
     if (!isVisible) return;
-    try {
-      profileService.getProfile();
-      projectService.getProjects();
-      educationService.getEducations();
-      certificateService.getCertificates();
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.catch(() => {});
-      }
-    } catch (_) {}
-  }, [isVisible]);
+    const preloadTimer = setTimeout(() => {
+      try {
+        profileService.getProfile();
+        projectService.getProjects();
+        educationService.getEducations();
+        certificateService.getCertificates();
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.catch(() => {});
+        }
+      } catch (_) {}
+    }, 1500);
 
-  // Fungsi untuk mengaktifkan suara penuh dan melanjutkan pemutaran
-  const unmuteAndPlaySound = useCallback(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = false;
-      videoRef.current.volume = 1;
-      setIsMuted(false);
-      videoRef.current.play().catch(() => {});
-    }
-  }, []);
+    return () => clearTimeout(preloadTimer);
+  }, [isVisible]);
 
   // Event listener untuk replay manual dari Settings atau Command Palette
   useEffect(() => {
@@ -95,23 +89,23 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
       setHasVideoError(false);
       setIsMuted(false);
 
-      if (videoRef.current) {
+      const video = videoRef.current;
+      if (video) {
         try {
-          videoRef.current.currentTime = 0;
-          videoRef.current.muted = false;
-          videoRef.current.volume = 1;
-          videoRef.current.play()
+          video.currentTime = 0;
+          video.muted = false;
+          video.volume = 1;
+          video.play()
             .then(() => {
               setIsPlaying(true);
               setIsAutoplayBlocked(false);
               setIsMuted(false);
             })
             .catch(() => {
-              if (videoRef.current) {
-                videoRef.current.muted = true;
-                setIsMuted(true);
-                videoRef.current.play().catch(() => setIsAutoplayBlocked(true));
-              }
+              // Jika audio diblokir, putar muted dulu lalu otomatis unmute pada klik
+              video.muted = true;
+              setIsMuted(true);
+              video.play().catch(() => setIsAutoplayBlocked(true));
             });
         } catch (_) {}
       }
@@ -123,7 +117,7 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
     };
   }, []);
 
-  // Manajemen pemutaran video intro & safety watchdog
+  // Manajemen pemutaran video intro otomatis bersuara & safety watchdog
   useEffect(() => {
     if (!isVisible) return;
 
@@ -134,67 +128,88 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
     }
 
     const videoEl = videoRef.current;
+    if (!videoEl) return;
+
+    videoEl.currentTime = 0;
+    videoEl.volume = 1;
+    videoEl.muted = false;
+
     let cleanupListeners = null;
 
-    if (videoEl) {
-      videoEl.currentTime = 0;
-      videoEl.volume = 1;
-      videoEl.muted = false;
+    const startPlayback = async () => {
+      try {
+        // Coba putar langsung dengan suara aktif (unmuted)
+        videoEl.muted = false;
+        videoEl.volume = 1;
+        await videoEl.play();
+        setIsPlaying(true);
+        setIsMuted(false);
+        setIsAutoplayBlocked(false);
+      } catch (unmutedErr) {
+        // Jika browser HP mencekal audio autoplay sebelum gestur, putar muted sementara
+        // dan pasang pendengar gestur pertama untuk langsung menyalakan audio secara otomatis
+        console.log('[EntranceAnimation] Browser mobile membatasi audio sebelum interaksi. Memutar dan otomatis bersuara saat disentuh/diklik:', unmutedErr);
+        videoEl.muted = true;
+        setIsMuted(true);
 
-      const attemptPlay = async () => {
         try {
-          videoEl.muted = false;
-          videoEl.volume = 1;
           await videoEl.play();
           setIsPlaying(true);
           setIsAutoplayBlocked(false);
-          setIsMuted(false);
-        } catch (unmutedErr) {
-          console.log('[EntranceAnimation] Autoplay dengan audio dibatasi browser sebelum interaksi. Memutar video muted:', unmutedErr);
-          videoEl.muted = true;
-          setIsMuted(true);
-          try {
-            await videoEl.play();
-            setIsPlaying(true);
-            setIsAutoplayBlocked(false);
-          } catch (mutedErr) {
-            setIsAutoplayBlocked(true);
-          }
-
-          // Bunyikan suara begitu pengguna menyentuh/klik layar
-          const handleFirstInteraction = () => {
-            unmuteAndPlaySound();
-            removeListeners();
-          };
-
-          const removeListeners = () => {
-            window.removeEventListener('click', handleFirstInteraction, true);
-            window.removeEventListener('keydown', handleFirstInteraction, true);
-            window.removeEventListener('touchstart', handleFirstInteraction, true);
-            window.removeEventListener('pointerdown', handleFirstInteraction, true);
-          };
-
-          cleanupListeners = removeListeners;
-          window.addEventListener('click', handleFirstInteraction, true);
-          window.addEventListener('keydown', handleFirstInteraction, true);
-          window.addEventListener('touchstart', handleFirstInteraction, true);
-          window.addEventListener('pointerdown', handleFirstInteraction, true);
+        } catch (mutedErr) {
+          setIsAutoplayBlocked(true);
         }
-      };
 
-      attemptPlay();
+        const handleAutoUnmute = () => {
+          if (videoEl && !videoEl.ended) {
+            videoEl.muted = false;
+            videoEl.volume = 1;
+            setIsMuted(false);
+            if (videoEl.paused) {
+              videoEl.play().catch(() => {});
+            }
+          }
+          removeGestureListeners();
+        };
+
+        const removeGestureListeners = () => {
+          window.removeEventListener('click', handleAutoUnmute, true);
+          window.removeEventListener('touchstart', handleAutoUnmute, true);
+          window.removeEventListener('pointerdown', handleAutoUnmute, true);
+          window.removeEventListener('keydown', handleAutoUnmute, true);
+        };
+
+        cleanupListeners = removeGestureListeners;
+        window.addEventListener('click', handleAutoUnmute, true);
+        window.addEventListener('touchstart', handleAutoUnmute, true);
+        window.addEventListener('pointerdown', handleAutoUnmute, true);
+        window.addEventListener('keydown', handleAutoUnmute, true);
+      }
+    };
+
+    if (videoEl.readyState >= 2) {
+      startPlayback();
+    } else {
+      videoEl.addEventListener('canplay', startPlayback, { once: true });
+      videoEl.addEventListener('loadeddata', startPlayback, { once: true });
     }
 
-    // Safety watchdog: Jika video tidak selesai dalam 12 detik, langsung transisi ke Home
+    // Safety watchdog: Jika video mengalami buffering lama atau macet, transisi otomatis setelah 16 detik
     const watchdog = setTimeout(() => {
       completeAndExit();
-    }, 12000);
+    }, 16000);
 
     return () => {
       clearTimeout(watchdog);
-      if (cleanupListeners) cleanupListeners();
+      if (videoEl) {
+        videoEl.removeEventListener('canplay', startPlayback);
+        videoEl.removeEventListener('loadeddata', startPlayback);
+      }
+      if (cleanupListeners) {
+        cleanupListeners();
+      }
     };
-  }, [isVisible, isReducedMotion, completeAndExit, unmuteAndPlaySound]);
+  }, [isVisible, isReducedMotion, completeAndExit]);
 
   // Saat video 10 detik selesai berputar, langsung transisi ke Home tanpa jeda kosong
   const handleVideoEnded = () => {
@@ -206,12 +221,21 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
     completeAndExit();
   };
 
+  // Jika video ter-pause secara tak terduga (misal interupsi OS mobile), langsung lanjutkan kembali
+  const handleVideoPause = () => {
+    const video = videoRef.current;
+    if (video && !video.ended && isVisible) {
+      video.play().catch(() => {});
+    }
+  };
+
   const handleManualPlay = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = false;
-      videoRef.current.volume = 1;
+    const video = videoRef.current;
+    if (video) {
+      video.muted = false;
+      video.volume = 1;
       setIsMuted(false);
-      videoRef.current.play()
+      video.play()
         .then(() => {
           setIsPlaying(true);
           setIsAutoplayBlocked(false);
@@ -239,13 +263,6 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
           scale: 1.01,
           transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] }
         }}
-        onPointerDown={() => {
-          if (videoRef.current && videoRef.current.muted) {
-            videoRef.current.muted = false;
-            videoRef.current.volume = 1;
-            setIsMuted(false);
-          }
-        }}
         style={{
           position: 'fixed',
           inset: 0,
@@ -263,6 +280,25 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
         aria-label="Animasi Pembuka Portfolio BibTzy"
         role="region"
       >
+        {/* Style Keyframes untuk partikel es murni CSS (0% JS overhead pada GPU mobile) */}
+        <style>{`
+          @keyframes iceParticlePulse {
+            0%, 100% {
+              transform: translate3d(0, -10px, 0) scale(0.9);
+              opacity: 0.4;
+            }
+            50% {
+              transform: translate3d(0, 10px, 0) scale(1.1);
+              opacity: 0.85;
+            }
+          }
+          .ice-pure-particle {
+            animation: iceParticlePulse var(--duration) ease-in-out infinite;
+            animation-delay: var(--delay);
+            will-change: transform, opacity;
+          }
+        `}</style>
+
         {/* Ambient Glow Biru Es di Tengah */}
         <div
           style={{
@@ -271,7 +307,6 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
             height: 'min(55vw, 520px)',
             borderRadius: '50%',
             background: 'radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, rgba(2, 132, 199, 0.06) 50%, transparent 75%)',
-            filter: 'blur(75px)',
             pointerEvents: 'none',
             transform: 'translate(-50%, -50%)',
             left: '50%',
@@ -280,23 +315,14 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
           }}
         />
 
-        {/* Partikel Es Melayang Halus */}
+        {/* Partikel Es Melayang Halus (Menggunakan CSS GPU Composited) */}
         {ICE_PARTICLES.map((p) => (
-          <motion.div
+          <div
             key={p.id}
-            initial={{ y: 0, opacity: p.opacity * 0.5 }}
-            animate={{
-              y: [-14, 14, -14],
-              opacity: [p.opacity * 0.35, p.opacity, p.opacity * 0.35],
-              scale: [0.9, 1.15, 0.9]
-            }}
-            transition={{
-              duration: p.duration,
-              delay: p.delay,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
+            className="ice-pure-particle"
             style={{
+              '--duration': `${p.duration}s`,
+              '--delay': `${p.delay}s`,
               position: 'absolute',
               top: p.top,
               left: p.left,
@@ -305,7 +331,7 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
               height: `${p.size}px`,
               borderRadius: '50%',
               background: 'radial-gradient(circle, #E0F2FE 0%, #38BDF8 65%, transparent 100%)',
-              boxShadow: '0 0 10px rgba(56, 189, 248, 0.75)',
+              boxShadow: '0 0 8px rgba(56, 189, 248, 0.65)',
               pointerEvents: 'none',
               zIndex: 3
             }}
@@ -330,14 +356,13 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 10
+            zIndex: 10,
+            willChange: 'transform',
+            transform: 'translateZ(0)'
           }}
         >
           {/* Video Box Container */}
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          <div
             style={{
               position: 'relative',
               width: '100%',
@@ -345,7 +370,8 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
               overflow: 'hidden',
               background: '#01040A',
               boxShadow: '0 16px 50px rgba(0, 0, 0, 0.8), 0 0 35px rgba(56, 189, 248, 0.22)',
-              border: '1px solid rgba(56, 189, 248, 0.28)'
+              border: '1px solid rgba(56, 189, 248, 0.28)',
+              transform: 'translateZ(0)'
             }}
           >
             <video
@@ -354,9 +380,12 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
               autoPlay
               muted={isMuted}
               playsInline
+              webkit-playsinline="true"
+              x5-playsinline="true"
               preload="auto"
               onEnded={handleVideoEnded}
               onError={handleVideoError}
+              onPause={handleVideoPause}
               style={{
                 display: 'block',
                 width: '100%',
@@ -364,11 +393,12 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
                 maxHeight: '76vh',
                 aspectRatio: '16/9',
                 objectFit: 'contain',
-                backgroundColor: '#01040A'
+                backgroundColor: '#01040A',
+                willChange: 'transform'
               }}
             />
 
-            {/* Autoplay blocked fallback */}
+            {/* Autoplay blocked fallback jika browser memblokir video total */}
             {isAutoplayBlocked && !isPlaying && (
               <div
                 style={{
@@ -400,61 +430,20 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
                   <span>Mulai Video Intro BibTzy</span>
                 </button>
                 <span style={{ color: 'rgba(224, 242, 254, 0.75)', fontSize: '0.8rem' }}>
-                  Klik tombol untuk memutar video dengan audio jernih
+                  Ketuk tombol untuk memutar video dengan audio
                 </span>
               </div>
             )}
-            {/* Tombol Aktifkan Suara / Toggle Audio */}
-            {isPlaying && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isMuted) {
-                    unmuteAndPlaySound();
-                  } else if (videoRef.current) {
-                    videoRef.current.muted = true;
-                    setIsMuted(true);
-                  }
-                }}
-                style={{
-                  position: 'absolute',
-                  bottom: '0.85rem',
-                  right: '0.85rem',
-                  zIndex: 25,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: 'var(--radius-full)',
-                  background: isMuted ? 'rgba(239, 68, 68, 0.88)' : 'rgba(14, 165, 233, 0.85)',
-                  color: '#FFFFFF',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  boxShadow: isMuted ? '0 0 16px rgba(239, 68, 68, 0.65)' : '0 4px 15px rgba(0, 0, 0, 0.5)',
-                  cursor: 'pointer',
-                  backdropFilter: 'blur(8px)',
-                  transition: 'all 0.2s ease'
-                }}
-                title={isMuted ? 'Klik untuk Mengaktifkan Suara Video' : 'Matikan Suara Video'}
-              >
-                {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
-                <span>{isMuted ? 'Aktifkan Suara' : 'Suara Aktif'}</span>
-              </button>
-            )}
-          </motion.div>
+          </div>
 
-          {/* Status Menyiapkan Website & Tombol Lewati */}
+          {/* Status Menyiapkan Website (Tombol Aktifkan Suara dan Lewati Intro telah dihapus) */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             width: '100%',
             marginTop: '0.85rem',
-            padding: '0 0.25rem',
-            gap: '1rem',
-            flexWrap: 'wrap'
+            padding: '0 0.25rem'
           }}>
             <div style={{
               display: 'flex',
@@ -467,22 +456,6 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
               <Loader2 size={15} className="animate-spin" />
               <span>Mohon tunggu, sedang menyiapkan website...</span>
             </div>
-
-            <button
-              type="button"
-              onClick={completeAndExit}
-              className="btn btn-glass btn-sm"
-              style={{
-                fontSize: '0.78rem',
-                padding: '0.35rem 0.75rem',
-                gap: '0.35rem',
-                borderRadius: 'var(--radius-full)'
-              }}
-              title="Lewati video intro dan langsung masuk ke beranda"
-            >
-              <span>Lewati Intro</span>
-              <FastForward size={13} />
-            </button>
           </div>
         </motion.div>
       </motion.div>

@@ -34,7 +34,7 @@ const SIDEBAR_GUIDE_DATA = {
   },
   about: {
     title: 'About',
-    message: 'Yuk, kenali lebih jauh tentang pemilik portfolio ini.',
+    message: 'Kenali lebih jauh tentang profil, jurusan PPLG, dan minat saya.',
     expression: 'curious'
   },
   projects: {
@@ -84,7 +84,7 @@ const SIDEBAR_GUIDE_DATA = {
   },
   wallpaper: {
     title: 'Custom Wallpaper',
-    message: 'Kamu bisa mengganti background menggunakan gambar atau video dari perangkatmu.',
+    message: 'Ganti wallpaper latar belakang menggunakan gambar atau video favoritmu.',
     expression: 'surprised'
   }
 };
@@ -107,13 +107,11 @@ const pathToMenuKey = (path = '/') => {
   return 'home';
 };
 
-let isChibiPreloaded = false;
-
 export default function ChibiMascot() {
   const location = useLocation();
   const { playSound, isReducedMotion } = useTheme();
 
-  // State panduan chibi
+  // State panduan chibi disinkronkan dengan rute saat ini
   const [guideState, setGuideState] = useState(() => {
     const initialKey = pathToMenuKey(typeof window !== 'undefined' ? window.location.pathname : '/');
     return SIDEBAR_GUIDE_DATA[initialKey] || SIDEBAR_GUIDE_DATA.home;
@@ -121,48 +119,19 @@ export default function ChibiMascot() {
 
   const [isVisible, setIsVisible] = useState(true);
   const [isBubbleOpen, setIsBubbleOpen] = useState(false);
-  const [isManualClosed, setIsManualClosed] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const autoDismissTimerRef = useRef(null);
-  const isHoveredRef = useRef(false);
 
-  // Preload semua 12 aset ekspresi satu kali saja secara global agar tidak boros memori
-  useEffect(() => {
-    if (isChibiPreloaded) return;
-    isChibiPreloaded = true;
-    Object.values(CHIBI_EXPRESSIONS).forEach((src) => {
-      const img = new Image();
-      img.src = src;
-    });
-  }, []);
-
-  // Mulai hitung mundur auto-dismiss (6.5 detik tanpa interaksi)
-  const scheduleAutoDismiss = useCallback((duration = 6500) => {
+  // Jadwalkan penutupan bubble otomatis setelah 5 detik
+  const scheduleAutoDismiss = useCallback((duration = 5000) => {
     if (autoDismissTimerRef.current) {
       clearTimeout(autoDismissTimerRef.current);
-      autoDismissTimerRef.current = null;
     }
-
     autoDismissTimerRef.current = setTimeout(() => {
-      if (!isHoveredRef.current) {
-        setIsBubbleOpen(false);
-      }
+      setIsBubbleOpen(false);
     }, duration);
   }, []);
-
-  // Tampilkan panduan menu dengan ekspresi dan teks yang sesuai saat dipicu
-  const triggerGuide = useCallback((menuKey) => {
-    const key = menuKey?.toLowerCase() || 'home';
-    const guideItem = SIDEBAR_GUIDE_DATA[key] || SIDEBAR_GUIDE_DATA.home;
-
-    setGuideState(guideItem);
-    setIsVisible(true);
-    setIsBubbleOpen(true);
-    setIsManualClosed(false);
-
-    // Reset dan jadwalkan timer menghilang otomatis
-    scheduleAutoDismiss(6500);
-  }, [scheduleAutoDismiss]);
 
   // Bersihkan timer auto-dismiss saat unmount
   useEffect(() => {
@@ -171,49 +140,33 @@ export default function ChibiMascot() {
     };
   }, []);
 
-  // Tangkap event klik menu sidebar dari Sidebar & MobileNavigation (hanya perbarui state, jangan buka popup otomatis)
-  useEffect(() => {
-    const handleGuideEvent = (e) => {
-      const { path, key, label } = e.detail || {};
-      const resolvedKey = key || pathToMenuKey(path || label || '');
-      const guideItem = SIDEBAR_GUIDE_DATA[resolvedKey] || SIDEBAR_GUIDE_DATA.home;
-      setGuideState(guideItem);
-    };
-
-    window.addEventListener('bibtzy-chibi-guide-trigger', handleGuideEvent);
-    return () => window.removeEventListener('bibtzy-chibi-guide-trigger', handleGuideEvent);
-  }, []);
-
-  // Pantau perubahan URL untuk sinkronisasi konteks chibi tanpa memunculkan popup otomatis
+  // Sinkronisasi data panduan saat lokasi halaman berpindah (tanpa membuka balon secara paksa)
   useEffect(() => {
     const key = pathToMenuKey(location.pathname);
     const guideItem = SIDEBAR_GUIDE_DATA[key] || SIDEBAR_GUIDE_DATA.home;
     setGuideState(guideItem);
+    setImgError(false);
   }, [location.pathname]);
 
-  // Penanganan tombol "×" untuk menutup bubble panduan
+  // Klik tombol "x" pada balon teks
   const handleCloseBubble = (e) => {
     e.stopPropagation();
     playSound?.('click');
     setIsBubbleOpen(false);
-    setIsVisible(false);
-    setIsManualClosed(true);
-
     if (autoDismissTimerRef.current) {
       clearTimeout(autoDismissTimerRef.current);
       autoDismissTimerRef.current = null;
     }
   };
 
-  const handleChibiClick = (e) => {
+  // Klik pada maskot: buka/tutup balon panduan interaktif
+  const handleMascotClick = (e) => {
     e.stopPropagation();
     playSound?.('bubble');
 
     if (!isBubbleOpen) {
-      setIsVisible(true);
       setIsBubbleOpen(true);
-      setIsManualClosed(false);
-      scheduleAutoDismiss(6500);
+      scheduleAutoDismiss(5000);
     } else {
       setIsBubbleOpen(false);
       if (autoDismissTimerRef.current) {
@@ -223,232 +176,204 @@ export default function ChibiMascot() {
     }
   };
 
-  const handleMouseEnter = () => {
-    isHoveredRef.current = true;
-    if (autoDismissTimerRef.current) {
-      clearTimeout(autoDismissTimerRef.current);
-      autoDismissTimerRef.current = null;
-    }
-  };
+  const currentChibiSrc = imgError
+    ? '/images/bibtzy-frost-logo.png'
+    : (CHIBI_EXPRESSIONS[guideState.expression] || CHIBI_EXPRESSIONS.welcome);
 
-  const handleMouseLeave = () => {
-    isHoveredRef.current = false;
-    // Lanjutkan hitung mundur saat kursor meninggalkan area chibi/bubble
-    if (isVisible) {
-      scheduleAutoDismiss(3800);
-    }
-  };
-
-  const currentChibiSrc = CHIBI_EXPRESSIONS[guideState.expression] || CHIBI_EXPRESSIONS.welcome;
+  if (!isVisible) return null;
 
   return (
     <div
       id="bibtzy-chibi-guide-container"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       style={{
         position: 'fixed',
-        bottom: '5.2rem',
-        right: '1.5rem',
-        zIndex: 980,
+        bottom: 'calc(4.25rem + env(safe-area-inset-bottom, 0px))',
+        right: '1.25rem',
+        zIndex: 960,
         pointerEvents: 'none',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-end',
         userSelect: 'none'
       }}
-      aria-label="Chibi Interactive Sidebar Guide"
+      aria-label="Maskot Panduan BibTzy"
     >
       <AnimatePresence>
-        {isVisible && (
+        {/* BALON TEKS PANDUAN (Hanya muncul jika diklik, tidak menutupi konten halaman) */}
+        {isBubbleOpen && (
           <motion.div
-            key="chibi-guide-wrapper"
-            initial={!isReducedMotion ? { opacity: 0, x: 42, y: 24, scale: 0.88 } : { opacity: 0 }}
-            animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-            exit={!isReducedMotion ? { opacity: 0, x: 38, y: 20, scale: 0.88 } : { opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            key={guideState.title}
+            initial={!isReducedMotion ? { opacity: 0, y: 10, scale: 0.92 } : { opacity: 0 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={!isReducedMotion ? { opacity: 0, y: 8, scale: 0.92 } : { opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-end',
-              position: 'relative'
+              position: 'relative',
+              pointerEvents: 'auto',
+              width: 'min(260px, calc(100vw - 2.5rem))',
+              padding: '0.75rem 0.95rem',
+              borderRadius: '14px',
+              background: 'rgba(6, 14, 28, 0.95)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(56, 189, 248, 0.35)',
+              boxShadow: '0 12px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.2)',
+              marginBottom: '0.65rem',
+              color: '#F4F8FF',
+              transformOrigin: 'bottom right'
             }}
           >
-            {/* SPEECH BUBBLE PANDUAN MENU */}
-            <AnimatePresence mode="wait">
-              {isBubbleOpen && (
-                <motion.div
-                  key={guideState.title}
-                  initial={!isReducedMotion ? { opacity: 0, y: 10, scale: 0.92 } : { opacity: 0 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={!isReducedMotion ? { opacity: 0, y: 8, scale: 0.92 } : { opacity: 0 }}
-                  transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            {/* Header Balon */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '0.4rem',
+                borderBottom: '1px solid rgba(56, 189, 248, 0.15)',
+                paddingBottom: '0.35rem'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Sparkles size={13} className="text-ice" />
+                <span
                   style={{
-                    position: 'relative',
-                    pointerEvents: 'auto',
-                    width: 'min(290px, calc(100vw - 3.5rem))',
-                    padding: '0.85rem 1rem 0.9rem 1rem',
-                    borderRadius: '16px',
-                    background: 'rgba(6, 14, 28, 0.94)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(56, 189, 248, 0.38)',
-                    boxShadow: '0 12px 35px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.18)',
-                    marginBottom: '0.75rem',
-                    color: '#F4F8FF',
-                    transformOrigin: 'bottom right'
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    color: '#8DDCFF'
                   }}
                 >
-                  {/* Header Bubble: Tag & Tombol Close (×) */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: '0.35rem'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <Sparkles size={13} style={{ color: '#38BDF8' }} />
-                      <span
-                        style={{
-                          fontSize: '0.74rem',
-                          fontWeight: 700,
-                          color: '#38BDF8',
-                          letterSpacing: '0.04em',
-                          textTransform: 'uppercase'
-                        }}
-                      >
-                        Panduan • {guideState.title}
-                      </span>
-                    </div>
+                  Panduan • {guideState.title}
+                </span>
+              </div>
 
-                    <button
-                      type="button"
-                      onClick={handleCloseBubble}
-                      style={{
-                        background: 'rgba(56, 189, 248, 0.12)',
-                        border: '1px solid rgba(56, 189, 248, 0.3)',
-                        color: 'rgba(224, 242, 254, 0.95)',
-                        width: '32px',
-                        height: '32px',
-                        minWidth: '32px',
-                        minHeight: '32px',
-                        borderRadius: '50%',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.15s ease',
-                        touchAction: 'manipulation'
-                      }}
-                      className="chibi-close-btn"
-                      title="Tutup penjelasan (×)"
-                      aria-label="Tutup penjelasan"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-
-                  {/* Isi Penjelasan Menu Singkat */}
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: '0.84rem',
-                      lineHeight: '1.45',
-                      color: '#E0F2FE',
-                      fontWeight: 500,
-                      letterSpacing: '0.01em'
-                    }}
-                  >
-                    {guideState.message}
-                  </p>
-
-                  {/* Speech Bubble Pointer / Ekor Icy Blue ke Karakter Chibi */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: '-7px',
-                      right: '34px',
-                      width: '12px',
-                      height: '12px',
-                      background: 'rgba(6, 14, 28, 0.94)',
-                      borderRight: '1px solid rgba(56, 189, 248, 0.38)',
-                      borderBottom: '1px solid rgba(56, 189, 248, 0.38)',
-                      transform: 'rotate(45deg)',
-                      zIndex: 1
-                    }}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* KARAKTER MASKOT CHIBI ASLI */}
-            <motion.div
-              animate={{
-                y: isReducedMotion ? 0 : [0, -5, 0]
-              }}
-              transition={{
-                duration: 3.2,
-                repeat: Infinity,
-                ease: 'easeInOut'
-              }}
-              whileHover={!isReducedMotion ? { scale: 1.08, y: -6 } : {}}
-              whileTap={!isReducedMotion ? { scale: 0.94 } : {}}
-              onClick={handleChibiClick}
-              style={{
-                position: 'relative',
-                cursor: 'pointer',
-                pointerEvents: 'auto',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                filter: 'drop-shadow(0 8px 20px rgba(56, 189, 248, 0.35))'
-              }}
-              title="Maskot BibTzy — Klik untuk menampilkan penjelasan menu!"
-            >
-              {/* Efek Cahaya Lingkaran Ambient Halus di Belakang Maskot */}
-              <div
+              <button
+                type="button"
+                onClick={handleCloseBubble}
                 style={{
-                  position: 'absolute',
-                  top: '40%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: '78px',
-                  height: '78px',
+                  background: 'rgba(56, 189, 248, 0.12)',
+                  border: '1px solid rgba(56, 189, 248, 0.3)',
+                  color: 'rgba(224, 242, 254, 0.95)',
+                  width: '24px',
+                  height: '24px',
                   borderRadius: '50%',
-                  background: 'radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, transparent 70%)',
-                  filter: 'blur(14px)',
-                  pointerEvents: 'none',
-                  zIndex: -1
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.15s ease'
                 }}
-              />
+                className="chibi-close-btn"
+                title="Tutup (×)"
+                aria-label="Tutup panduan"
+              >
+                <X size={12} />
+              </button>
+            </div>
 
-              {/* Gambar Maskot Chibi dengan Transisi Ekspresi Halus */}
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={guideState.expression}
-                  src={currentChibiSrc}
-                  alt={`Maskot Chibi BibTzy - ${guideState.expression}`}
-                  initial={{ opacity: 0.8, scale: 0.94 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0.8, scale: 0.94 }}
-                  transition={{ duration: 0.18 }}
-                  style={{
-                    width: 'clamp(72px, 8.5vw, 90px)',
-                    height: 'auto',
-                    aspectRatio: '1/1',
-                    objectFit: 'contain',
-                    display: 'block',
-                    filter: 'contrast(1.03) brightness(1.02)'
-                  }}
-                  draggable={false}
-                />
-              </AnimatePresence>
-            </motion.div>
+            {/* Isi Pesan Singkat */}
+            <p
+              style={{
+                margin: 0,
+                fontSize: '0.8rem',
+                lineHeight: '1.45',
+                color: '#E0F2FE',
+                fontWeight: 500
+              }}
+            >
+              {guideState.message}
+            </p>
+
+            {/* Ekor Balon Icy Blue ke Arah Maskot */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '-6px',
+                right: '24px',
+                width: '10px',
+                height: '10px',
+                background: 'rgba(6, 14, 28, 0.95)',
+                borderRight: '1px solid rgba(56, 189, 248, 0.35)',
+                borderBottom: '1px solid rgba(56, 189, 248, 0.35)',
+                transform: 'rotate(45deg)',
+                zIndex: 1
+              }}
+            />
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ICON BADGE MASKOT CHIBI BULAT (Rapi, mewah, tidak menutupi isi kartu) */}
+      <motion.div
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.94 }}
+        onClick={handleMascotClick}
+        style={{
+          width: '58px',
+          height: '58px',
+          borderRadius: '50%',
+          background: 'rgba(6, 14, 28, 0.92)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1.5px solid rgba(56, 189, 248, 0.45)',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.65), 0 0 16px rgba(56, 189, 248, 0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          pointerEvents: 'auto',
+          position: 'relative',
+          overflow: 'hidden',
+          transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
+        }}
+        title="Maskot BibTzy — Ketuk untuk bantuan & info halaman!"
+      >
+        {/* Glow ambient di belakang maskot */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: '4px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, transparent 75%)',
+            pointerEvents: 'none'
+          }}
+        />
+
+        {/* Gambar Maskot Chibi dengan fallback aman anti-broken image (100% bebas icon error) */}
+        {imgError ? (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, transparent 70%)'
+            }}
+          >
+            <Sparkles size={24} style={{ color: '#38BDF8', filter: 'drop-shadow(0 0 8px rgba(56, 189, 248, 0.8))' }} />
+          </div>
+        ) : (
+          <img
+            src={currentChibiSrc}
+            alt="Maskot BibTzy"
+            onError={() => {
+              setImgError(true);
+            }}
+            style={{
+              width: '84%',
+              height: '84%',
+              objectFit: 'contain',
+              display: 'block',
+              filter: 'contrast(1.05) brightness(1.04) drop-shadow(0 2px 6px rgba(0,0,0,0.4))',
+              userSelect: 'none'
+            }}
+            draggable={false}
+          />
+        )}
+      </motion.div>
 
       <style>{`
         .chibi-close-btn:hover {
@@ -458,8 +383,12 @@ export default function ChibiMascot() {
         }
         @media (max-width: 640px) {
           #bibtzy-chibi-guide-container {
-            bottom: calc(4.6rem + env(safe-area-inset-bottom, 0px)) !important;
-            right: 0.75rem !important;
+            bottom: calc(3.8rem + env(safe-area-inset-bottom, 0px)) !important;
+            right: 0.85rem !important;
+          }
+          #bibtzy-chibi-guide-container > div:last-child {
+            width: 48px !important;
+            height: 48px !important;
           }
         }
       `}</style>
