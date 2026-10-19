@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Loader2 } from 'lucide-react';
+import { Play, Loader2, Sparkles, Volume2, VolumeX, FastForward } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { profileService } from '../../services/profileService';
 import { projectService } from '../../services/projectService';
@@ -255,6 +255,38 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
     }
   };
 
+  const handleToggleAudio = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isMuted) {
+      video.muted = false;
+      video.volume = 1;
+      setIsMuted(false);
+      if (video.paused) {
+        video.play().catch(() => {});
+      }
+    } else {
+      video.muted = true;
+      setIsMuted(true);
+    }
+  };
+
+  const handleUnmuteOnly = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isMuted) {
+      video.muted = false;
+      video.volume = 1;
+      setIsMuted(false);
+      if (video.paused) {
+        video.play().catch(() => {});
+      }
+    }
+  };
 
   if (!isVisible) {
     return null;
@@ -431,6 +463,127 @@ export default function EntranceAnimation({ forceShow = false, onComplete }) {
                   willChange: 'transform'
                 }}
               />
+
+              {/* Floating Banner Ketuk Layar untuk Aktifkan Suara saat Muted */}
+              {isMuted && isPlaying && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  onClick={handleUnmuteOnly}
+                  style={{
+                    position: 'absolute',
+                    top: '0.85rem',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 25,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.45rem',
+                    padding: '0.4rem 0.95rem',
+                    borderRadius: '999px',
+                    background: 'rgba(5, 12, 26, 0.85)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border: '1.5px solid rgba(56, 189, 248, 0.55)',
+                    color: '#BAE6FD',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.6), 0 0 16px rgba(56, 189, 248, 0.35)',
+                    pointerEvents: 'auto',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  <VolumeX size={15} style={{ color: '#F87171' }} />
+                  <span>Ketuk layar untuk mengaktifkan suara</span>
+                </motion.div>
+              )}
+
+              {/* Tombol Lewati dan Tombol Kontrol Suara di atas video */}
+              {isPlaying && (
+                <>
+                  {/* Tombol Lewati */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      completeAndExit();
+                    }}
+                    style={{
+                      position: 'absolute',
+                      bottom: '0.85rem',
+                      left: '0.85rem',
+                      zIndex: 25,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      padding: '0.45rem 0.85rem',
+                      borderRadius: '999px',
+                      background: 'rgba(4, 9, 20, 0.72)',
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      color: 'rgba(224, 242, 254, 0.88)',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      border: '1px solid rgba(255, 255, 255, 0.22)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                    title="Lewati video intro"
+                    id="intro-btn-skip"
+                  >
+                    <span>Lewati</span>
+                    <FastForward size={14} />
+                  </button>
+
+                  {/* Tombol Toggle Suara Bersuara */}
+                  <motion.button
+                    type="button"
+                    onClick={handleToggleAudio}
+                    animate={isMuted ? {
+                      scale: [1, 1.05, 1],
+                      boxShadow: [
+                        '0 0 12px rgba(239, 68, 68, 0.65)',
+                        '0 0 24px rgba(239, 68, 68, 0.95)',
+                        '0 0 12px rgba(239, 68, 68, 0.65)'
+                      ]
+                    } : { scale: 1 }}
+                    transition={isMuted ? { repeat: Infinity, duration: 1.5, ease: 'easeInOut' } : {}}
+                    style={{
+                      position: 'absolute',
+                      bottom: '0.85rem',
+                      right: '0.85rem',
+                      zIndex: 25,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      padding: '0.5rem 0.95rem',
+                      borderRadius: '999px',
+                      background: isMuted
+                        ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.92), rgba(185, 28, 28, 0.92))'
+                        : 'linear-gradient(135deg, rgba(14, 165, 233, 0.9), rgba(2, 132, 199, 0.9))',
+                      backdropFilter: 'blur(10px)',
+                      WebkitBackdropFilter: 'blur(10px)',
+                      color: '#FFFFFF',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      border: isMuted
+                        ? '1.5px solid rgba(254, 202, 202, 0.7)'
+                        : '1.5px solid rgba(186, 230, 253, 0.7)',
+                      cursor: 'pointer',
+                      boxShadow: isMuted
+                        ? '0 0 20px rgba(239, 68, 68, 0.75)'
+                        : '0 0 18px rgba(56, 189, 248, 0.6)',
+                      transition: 'all 0.2s ease'
+                    }}
+                    title={isMuted ? 'Ketuk untuk Mengaktifkan Suara Video' : 'Suara Aktif'}
+                    id="intro-btn-audio-toggle"
+                  >
+                    {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                    <span>{isMuted ? 'Aktifkan Suara' : 'Suara Aktif'}</span>
+                  </motion.button>
+                </>
+              )}
 
               {/* Autoplay blocked fallback jika browser mobile memblokir video total */}
               {isAutoplayBlocked && !isPlaying && (
