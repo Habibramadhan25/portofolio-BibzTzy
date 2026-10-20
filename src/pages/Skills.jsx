@@ -239,8 +239,8 @@ export default function Skills() {
             <MotionCard key={skill.id}>
               <SkillCard
                 skill={skill}
-                onEdit={isOwner ? handleEdit : openAuthModal}
-                onDelete={isOwner ? (s) => setDeletingSkill(s) : openAuthModal}
+                onEdit={isOwner ? handleEdit : undefined}
+                onDelete={isOwner ? (s) => setDeletingSkill(s) : undefined}
               />
             </MotionCard>
           ))}

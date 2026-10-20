@@ -13,6 +13,7 @@ import OwnerAuthModal from '../common/OwnerAuthModal';
 import RealtimeLiveWidget from '../common/RealtimeLiveWidget';
 import ChibiMascot from '../common/ChibiMascot';
 import FloatingMusicBar from '../common/FloatingMusicBar';
+import NovaAIChatModal from '../nova-ai/NovaAIChatModal';
 import { profileService } from '../../services/profileService';
 import { onlineSyncService } from '../../services/onlineSyncService';
 import { useTheme } from '../../context/ThemeContext';
@@ -21,6 +22,8 @@ export default function AppLayout() {
   const [profile, setProfile] = useState(() => profileService.getProfile());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
+  const [isNovaAIOpen, setIsNovaAIOpen] = useState(false);
+  const [novaAiInitialMode, setNovaAiInitialMode] = useState('general');
   const [isOnline, setIsOnline] = useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
 
   const location = useLocation();
@@ -65,14 +68,26 @@ export default function AppLayout() {
 
     // Global Shortcut Listener:
     // Ctrl+K -> Command Palette
+    // Ctrl+J or Alt+A -> NOVA AI Assistant
     const handleGlobalKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setIsCmdPaletteOpen(prev => !prev);
+      } else if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') || (e.altKey && e.key.toLowerCase() === 'a')) {
+        e.preventDefault();
+        setIsNovaAIOpen(prev => !prev);
       }
     };
 
+    const handleOpenNovaAI = (e) => {
+      if (e?.detail?.mode) {
+        setNovaAiInitialMode(e.detail.mode);
+      }
+      setIsNovaAIOpen(true);
+    };
+
     window.addEventListener('keydown', handleGlobalKeyDown);
+    window.addEventListener('nova-ai-open', handleOpenNovaAI);
 
     // Inisialisasi langganan real-time cloud Supabase (jika terkonfigurasi)
     const realtimeSub = onlineSyncService.initRealtimeSubscription();
@@ -83,6 +98,7 @@ export default function AppLayout() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('keydown', handleGlobalKeyDown);
+      window.removeEventListener('nova-ai-open', handleOpenNovaAI);
       realtimeSub.unsubscribe();
     };
   }, []);
@@ -130,7 +146,7 @@ export default function AppLayout() {
           profile={profile}
         />
 
-        <main className="page-container">
+        <main className={`page-container ${location.pathname === '/' ? 'page-container-home' : ''}`}>
           <Outlet context={{ profile, setProfile }} />
         </main>
 
@@ -159,6 +175,13 @@ export default function AppLayout() {
 
       {/* Floating Music Bar (Spotify Track: The One That Got Away - Katy Perry) */}
       <FloatingMusicBar />
+
+      {/* NOVA AI Voice & Owner Assistant Modal */}
+      <NovaAIChatModal
+        isOpen={isNovaAIOpen}
+        initialMode={novaAiInitialMode}
+        onClose={() => setIsNovaAIOpen(false)}
+      />
     </div>
   );
 }

@@ -39,6 +39,11 @@ export default function App() {
           <Route path="activity" element={<Navigate to="/" replace />} />
           <Route path="aktivitas" element={<Navigate to="/" replace />} />
 
+          {/* Admin & Owner Knowledge Management Routes */}
+          <Route path="admin" element={<Navigate to="/settings?tab=knowledge" replace />} />
+          <Route path="admin/knowledge" element={<Navigate to="/settings?tab=knowledge" replace />} />
+          <Route path="knowledge" element={<Navigate to="/settings?tab=knowledge" replace />} />
+
           {/* Alias Rute Bahasa Indonesia & Bentuk Tunggal */}
           <Route path="skill" element={<Navigate to="/skills" replace />} />
           <Route path="skil" element={<Navigate to="/skills" replace />} />

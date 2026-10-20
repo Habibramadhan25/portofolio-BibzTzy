@@ -201,6 +201,42 @@ export default function MobileNavigation({ isOpen, onClose, profile }) {
 
         {/* Links with auto-close */}
         <nav style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1, overflowY: 'auto' }}>
+          {/* NOVA AI Button */}
+          <button
+            type="button"
+            className="nav-item"
+            onClick={() => {
+              onClose?.();
+              window.dispatchEvent(new CustomEvent('nova-ai-open'));
+            }}
+            style={{
+              background: 'linear-gradient(135deg, rgba(69, 207, 255, 0.22) 0%, rgba(14, 28, 52, 0.6) 100%)',
+              border: '1px solid rgba(69, 207, 255, 0.45)',
+              color: '#45CFFF',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.65rem',
+              cursor: 'pointer',
+              marginBottom: '0.35rem',
+              borderRadius: '12px',
+              padding: '0.75rem 1rem',
+              fontWeight: 700
+            }}
+          >
+            <Sparkles className="nav-icon" style={{ color: '#45CFFF' }} />
+            <span>NOVA AI Assistant</span>
+            <span style={{
+              marginLeft: 'auto',
+              fontSize: '0.65rem',
+              padding: '0.15rem 0.45rem',
+              borderRadius: '999px',
+              background: 'rgba(69, 207, 255, 0.25)',
+              color: '#FFFFFF'
+            }}>
+              Voice & Chat
+            </span>
+          </button>
+
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             return (

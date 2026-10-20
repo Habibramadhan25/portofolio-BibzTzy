@@ -1,6 +1,6 @@
-import { storageService } from './storageService';
-import { indexedDbService } from './indexedDbService';
-import { activityFeedService } from './activityFeedService';
+import { storageService } from './storageService.js';
+import { indexedDbService } from './indexedDbService.js';
+import { activityFeedService } from './activityFeedService.js';
 
 export const INITIAL_CERTIFICATES = [
   {

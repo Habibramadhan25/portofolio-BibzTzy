@@ -509,8 +509,8 @@ export default function CodingActivity() {
                 ? 'Coba ganti filter bahasa atau bersihkan kata kunci pencarian.'
                 : 'Mulai sesi coding pertama Anda untuk mencatat waktu belajar dan mendapatkan XP!'
             }
-            actionText="Mulai Sesi Coding Pertama"
-            onAction={() => setIsStartModalOpen(true)}
+            actionText={isOwner ? "Mulai Sesi Coding Pertama" : undefined}
+            onAction={isOwner ? () => setIsStartModalOpen(true) : undefined}
           />
         ) : (
           <div style={{
@@ -522,7 +522,7 @@ export default function CodingActivity() {
               <SessionCard
                 key={session.id}
                 session={session}
-                onDelete={(s) => setDeletingSession(s)}
+                onDelete={isOwner ? (s) => setDeletingSession(s) : undefined}
               />
             ))}
           </div>

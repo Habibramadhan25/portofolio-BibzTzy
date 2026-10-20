@@ -175,8 +175,8 @@ export default function Education() {
             <MotionCard key={item.id} hoverLift={false}>
               <TimelineItem
                 item={item}
-                onEdit={isOwner ? handleEdit : openAuthModal}
-                onDelete={isOwner ? (it) => setDeletingItem(it) : openAuthModal}
+                onEdit={isOwner ? handleEdit : undefined}
+                onDelete={isOwner ? (it) => setDeletingItem(it) : undefined}
               />
             </MotionCard>
           ))}

@@ -299,9 +299,9 @@ export default function Projects() {
               <ProjectCard
                 project={project}
                 onDetail={(p) => setDetailProject(p)}
-                onEdit={isOwner ? handleEdit : openAuthModal}
-                onDelete={isOwner ? handleDeleteClick : openAuthModal}
-                onToggleFavorite={isOwner ? handleToggleFavorite : openAuthModal}
+                onEdit={isOwner ? handleEdit : undefined}
+                onDelete={isOwner ? handleDeleteClick : undefined}
+                onToggleFavorite={isOwner ? handleToggleFavorite : undefined}
               />
             </MotionCard>
           ))}

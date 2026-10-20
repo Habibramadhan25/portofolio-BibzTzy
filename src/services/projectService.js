@@ -1,5 +1,5 @@
-import { storageService } from './storageService';
-import { activityFeedService } from './activityFeedService';
+import { storageService } from './storageService.js';
+import { activityFeedService } from './activityFeedService.js';
 
 export const INITIAL_PROJECTS = [];
 

@@ -172,35 +172,58 @@ export default function ProjectCard({
               )}
 
               {/* Favorite Button */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  playSound?.('click');
-                  onToggleFavorite(id);
-                }}
-                style={{
-                  position: 'absolute',
-                  top: '0.6rem',
-                  right: '0.6rem',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: 'var(--radius-full)',
-                  background: 'rgba(7, 11, 20, 0.7)',
-                  backdropFilter: 'blur(8px)',
-                  border: '1px solid var(--border-glass)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: isFavorite ? '#F87171' : 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  transition: 'all var(--transition-fast)'
-                }}
-                title={isFavorite ? 'Hapus dari favorit' : 'Tandai favorit'}
-                aria-label="Toggle favorit"
-              >
-                <Heart size={16} fill={isFavorite ? '#F87171' : 'none'} />
-              </button>
+              {onToggleFavorite ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    playSound?.('click');
+                    onToggleFavorite(id);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '0.6rem',
+                    right: '0.6rem',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: 'var(--radius-full)',
+                    background: 'rgba(7, 11, 20, 0.7)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid var(--border-glass)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: isFavorite ? '#F87171' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    transition: 'all var(--transition-fast)'
+                  }}
+                  title={isFavorite ? 'Hapus dari favorit' : 'Tandai favorit'}
+                  aria-label="Toggle favorit"
+                >
+                  <Heart size={16} fill={isFavorite ? '#F87171' : 'none'} />
+                </button>
+              ) : isFavorite ? (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '0.6rem',
+                    right: '0.6rem',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: 'var(--radius-full)',
+                    background: 'rgba(7, 11, 20, 0.7)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid var(--border-glass)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#F87171'
+                  }}
+                  title="Proyek Favorit Pilihan Owner"
+                >
+                  <Heart size={16} fill="#F87171" />
+                </div>
+              ) : null}
 
               {/* Status Badge */}
               {status && (

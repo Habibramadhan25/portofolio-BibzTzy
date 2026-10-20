@@ -1,4 +1,4 @@
-import { storageService } from './storageService';
+import { storageService } from './storageService.js';
 
 export const DEFAULT_PROFILE = {
   name: 'Habib Ramadhan',
@@ -17,7 +17,9 @@ export const DEFAULT_PROFILE = {
   github: 'https://github.com/Habibramadhan25',
   instagram: 'https://www.instagram.com/bibzcoto?xtok=MWY2MjJqdWx4YjR1eQ==',
   avatar: '/images/user-avatar.jpg',
-  avatarType: 'custom' // 'preset' | 'custom'
+  avatarType: 'custom', // 'preset' | 'custom'
+  birthDate: '25 Agustus 2009', // Ulang tahun: 25 Agustus 2009 (status pending, tahun lahir belum diketahui)
+  closeFriends: ['Bibztzy', 'Ilham', 'Rafli'] // Teman owner: Bibztzy, Ilham, dan Rafli
 };
 
 const STORAGE_KEY = 'profile';
@@ -56,6 +58,12 @@ export const profileService = {
     // Nomor WhatsApp bawaan jika kosong atau memakai nomor dummy lawas
     if (merged.whatsapp === '+62 812-3456-7890' || !merged.whatsapp) {
       merged.whatsapp = '+62 812-8404-6378';
+      needsSave = true;
+    }
+
+    // Migrasi tanggal lahir / ulang tahun ke 25 Agustus 2009 jika masih versi lama
+    if (merged.birthDate === '25 Oktober' || !merged.birthDate || merged.birthDate.includes('Oktober')) {
+      merged.birthDate = '25 Agustus 2009';
       needsSave = true;
     }
 

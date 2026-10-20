@@ -227,8 +227,8 @@ export default function Certificates() {
               <CertificateCard
                 certificate={cert}
                 onPreview={handlePreview}
-                onEdit={isOwner ? handleEdit : openAuthModal}
-                onDelete={isOwner ? (c) => setDeletingCert(c) : openAuthModal}
+                onEdit={isOwner ? handleEdit : undefined}
+                onDelete={isOwner ? (c) => setDeletingCert(c) : undefined}
               />
             </MotionCard>
           ))}
@@ -266,7 +266,7 @@ export default function Certificates() {
         onDelete={isOwner ? (cert) => {
           setIsFormOpen(false);
           setDeletingCert(cert);
-        } : openAuthModal}
+        } : undefined}
         initialData={editingCert}
       />
 

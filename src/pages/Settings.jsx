@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { Link, useOutletContext } from 'react-router-dom';
+import { Link, useOutletContext, useSearchParams } from 'react-router-dom';
 import {
   Palette,
   Sun,
@@ -29,11 +29,13 @@ import {
   Lock,
   Unlock,
   ShieldCheck,
-  KeyRound
+  KeyRound,
+  Brain
 } from 'lucide-react';
 import PageHeader from '../components/common/PageHeader';
 import GlassCard from '../components/common/GlassCard';
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import OwnerKnowledgeManager from '../components/admin/OwnerKnowledgeManager';
 import { PageTransition, MotionItem, MotionCard } from '../components/common/MotionWrapper';
 import { useTheme } from '../context/ThemeContext';
 import { useOwner } from '../context/OwnerContext';
@@ -48,6 +50,8 @@ import { useToast } from '../context/ToastContext';
 
 export default function Settings() {
   const { profile, setProfile } = useOutletContext();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryTab = searchParams.get('tab');
   const {
     theme,
     setTheme,
@@ -84,7 +88,34 @@ export default function Settings() {
   const toast = useToast();
   const { isOwner, openAuthModal, logoutOwner, changePin, defaultPin } = useOwner();
 
-  const [activeTab, setActiveTab] = useState('appearance'); // 'appearance' | 'security' | 'storage'
+  const [activeTab, setActiveTab] = useState(() => {
+    if (queryTab === 'knowledge' || queryTab === 'owner-knowledge') return 'knowledge';
+    if (queryTab === 'security') return 'security';
+    if (queryTab === 'storage') return 'storage';
+    return 'appearance';
+  });
+
+  useEffect(() => {
+    if (queryTab && ['appearance', 'security', 'storage', 'knowledge'].includes(queryTab)) {
+      setActiveTab(queryTab);
+    }
+  }, [queryTab]);
+  const [mascotEnabled, setMascotEnabled] = useState(() => storageService.get('nova_mascot_enabled', true));
+  const [mascotAnimEnabled, setMascotAnimEnabled] = useState(() => storageService.get('nova_mascot_anim_enabled', true));
+
+  const handleToggleMascot = (val) => {
+    storageService.set('nova_mascot_enabled', val);
+    setMascotEnabled(val);
+    window.dispatchEvent(new CustomEvent('nova-mascot-settings-changed'));
+    toast.info(val ? 'Maskot Chibi diaktifkan.' : 'Maskot Chibi disembunyikan.');
+  };
+
+  const handleToggleMascotAnim = (val) => {
+    storageService.set('nova_mascot_anim_enabled', val);
+    setMascotAnimEnabled(val);
+    window.dispatchEvent(new CustomEvent('nova-mascot-settings-changed'));
+    toast.info(val ? 'Animasi maskot diaktifkan.' : 'Animasi maskot disederhanakan.');
+  };
 
   // Pastikan halaman Settings selalu muncul di posisi paling atas saat dibuka atau ganti tab
   useLayoutEffect(() => {
@@ -465,7 +496,29 @@ export default function Settings() {
           type="button"
           onClick={() => {
             playSound?.('click');
+            setActiveTab('knowledge');
+            setSearchParams({ tab: 'knowledge' });
+            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+          }}
+          className={`btn ${activeTab === 'knowledge' ? 'btn-primary' : 'btn-glass'}`}
+          style={{
+            padding: '0.65rem 1.25rem',
+            borderColor: 'rgba(56, 189, 248, 0.45)',
+            color: activeTab !== 'knowledge' ? '#38bdf8' : undefined
+          }}
+        >
+          <Brain size={16} />
+          <span>Basis Pengetahuan AI</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            playSound?.('click');
             setActiveTab('storage');
+            setSearchParams({ tab: 'storage' });
             window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
             document.documentElement.scrollTop = 0;
             document.body.scrollTop = 0;
@@ -1141,6 +1194,73 @@ export default function Settings() {
               </div>
             </GlassCard>
 
+            {/* Pengaturan Maskot Chibi & Animasi AI */}
+            <GlassCard style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '1.25rem' }}>
+                <Sparkles size={18} style={{ color: 'var(--accent-color)' }} />
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+                  Maskot Chibi & Animasi Interaktif
+                </h3>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
+                      Tampilkan Maskot Chibi di Sudut Layar
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Menampilkan maskot pendamping BibTzy yang terhubung dengan status NOVA AI dan panduan halaman.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${mascotEnabled ? 'btn-primary' : 'btn-glass'}`}
+                    onClick={() => handleToggleMascot(!mascotEnabled)}
+                  >
+                    {mascotEnabled ? 'Aktif' : 'Nonaktif'}
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', borderTop: '1px solid var(--border-glass)', paddingTop: '0.85rem' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
+                      Animasi & Efek Reaktif Maskot
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Mengaktifkan efek getar, ekspresi berbicara, dan efek denyut saat NOVA AI sedang mendengarkan atau berpikir.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${mascotAnimEnabled ? 'btn-primary' : 'btn-glass'}`}
+                    onClick={() => handleToggleMascotAnim(!mascotAnimEnabled)}
+                    disabled={!mascotEnabled}
+                  >
+                    {mascotAnimEnabled ? 'Aktif' : 'Nonaktif'}
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', borderTop: '1px solid var(--border-glass)', paddingTop: '0.85rem' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
+                      Buka Asisten Percakapan NOVA AI
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      Mulai percakapan suara dua arah, tanya info owner, atau belajar coding tutor.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={() => window.dispatchEvent(new CustomEvent('nova-ai-open'))}
+                  >
+                    Buka NOVA AI
+                  </button>
+                </div>
+              </div>
+            </GlassCard>
+
             {/* Appearance Reset Only */}
             <GlassCard style={{ padding: '1.5rem', border: '1px dashed var(--border-glass)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
@@ -1453,6 +1573,15 @@ export default function Settings() {
               </button>
             </div>
           </GlassCard>
+        </MotionCard>
+      )}
+
+      {/* =========================================================================
+          TAB 4: BASIS PENGETAHUAN OWNER (NOVA AI)
+          ========================================================================= */}
+      {activeTab === 'knowledge' && (
+        <MotionCard key="knowledge" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <OwnerKnowledgeManager />
         </MotionCard>
       )}
 

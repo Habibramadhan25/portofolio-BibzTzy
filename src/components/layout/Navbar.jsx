@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Menu,
   Sparkles,
-  Command,
+  Search,
   ShieldCheck,
   Lock,
   User,
@@ -15,27 +15,25 @@ import {
   ChevronRight,
   ExternalLink
 } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useOwner } from '../../context/OwnerContext';
 import Modal from '../common/Modal';
+import '../../styles/nova-home.css';
 
-const PAGE_TITLES = {
-  '/': 'Beranda & Ikhtisar',
-  '/about': 'Profil Siswa',
-  '/projects': 'Katalog Proyek',
-  '/feed': 'Activity Feed',
-  '/skills': 'Keahlian & Teknologi',
-  '/education': 'Pendidikan & Pengalaman',
-  '/certificates': 'Galeri Sertifikat',
-  '/cv': 'Pembuat CV (PDF)',
-  '/contact': 'Hubungi Saya',
-  '/settings': 'Pengaturan Website'
-};
+const NAV_LINKS = [
+  { path: '/', label: 'Home' },
+  { path: '/about', label: 'About' },
+  { path: '/projects', label: 'Projects' },
+  { path: '/skills', label: 'Skills' },
+  { path: '/education', label: 'Education' },
+  { path: '/certificates', label: 'Certificates' },
+  { path: '/cv', label: 'CV' },
+  { path: '/contact', label: 'Contact' },
+];
 
 export default function Navbar({ onOpenMobileMenu, onOpenCommandPalette, profile }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const currentTitle = PAGE_TITLES[location.pathname] || 'BibTzy';
   const { isOwner, openAuthModal, logoutOwner } = useOwner();
   const [isOwnerMenuOpen, setIsOwnerMenuOpen] = useState(false);
 
@@ -53,6 +51,7 @@ export default function Navbar({ onOpenMobileMenu, onOpenCommandPalette, profile
     <>
       <header className="topbar">
         <div className="topbar-left">
+          {/* Mobile hamburger menu toggle */}
           <button
             type="button"
             className="mobile-menu-btn"
@@ -62,102 +61,103 @@ export default function Navbar({ onOpenMobileMenu, onOpenCommandPalette, profile
             <Menu size={20} />
           </button>
 
-          <div className="topbar-page-badge">
-            <Sparkles size={14} className="text-ice" />
-            <span>{currentTitle}</span>
-          </div>
+          {/* NOVA GLASS Brand */}
+          <NavLink to="/" className="nova-brand-link" title="NOVA GLASS — Portofolio Habib Ramadhan">
+            <div className="nova-brand-icon-wrap">
+              <Sparkles size={20} />
+            </div>
+            <span className="nova-brand-text">NOVA GLASS</span>
+          </NavLink>
         </div>
 
-        <div className="topbar-right">
-          {/* Tombol Status Mode Pemilik / Mode Tamu */}
+        {/* Desktop Horizontal Navigation Links */}
+        <nav className="nova-nav-menu" aria-label="Navigasi Utama">
+          {NAV_LINKS.map((item) => (
+            <div key={item.path} className="nova-nav-item">
+              <NavLink
+                to={item.path}
+                end={item.path === '/'}
+                className={({ isActive }) => `nova-nav-anchor ${isActive ? 'active' : ''}`}
+              >
+                {({ isActive }) => (
+                  <>
+                    <span>{item.label}</span>
+                    {isActive && <span className="nova-active-indicator" />}
+                  </>
+                )}
+              </NavLink>
+            </div>
+          ))}
+        </nav>
+
+        {/* Right Action Buttons */}
+        <div className="nova-topbar-actions">
+          {/* NOVA AI Voice & Chat Assistant Button */}
+          <button
+            type="button"
+            className="nova-icon-btn"
+            onClick={() => window.dispatchEvent(new CustomEvent('nova-ai-open'))}
+            title="NOVA AI — Voice AI & Smart Owner Assistant (Ctrl + J)"
+            aria-label="Buka NOVA AI"
+            style={{
+              background: 'linear-gradient(135deg, rgba(69, 207, 255, 0.22) 0%, rgba(14, 28, 52, 0.6) 100%)',
+              borderColor: 'rgba(69, 207, 255, 0.5)',
+              color: '#45CFFF',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0 0.75rem',
+              width: 'auto'
+            }}
+          >
+            <Sparkles size={16} />
+            <span style={{ fontSize: '0.8rem', fontWeight: 700 }} className="desktop-inline">NOVA AI</span>
+          </button>
+
+          <button
+            type="button"
+            className="nova-icon-btn"
+            onClick={onOpenCommandPalette}
+            title="Cari & Command Palette (Ctrl + K)"
+            aria-label="Cari"
+          >
+            <Search size={18} />
+          </button>
+
+          <NavLink
+            to="/settings"
+            className="nova-icon-btn"
+            title="Pengaturan Website"
+            aria-label="Pengaturan"
+          >
+            <SettingsIcon size={18} />
+          </NavLink>
+
+          {/* Owner / Tamu Status Badge */}
           {isOwner ? (
             <button
               type="button"
-              className="btn btn-glass btn-sm"
+              className="nova-owner-btn owner"
               onClick={() => setIsOwnerMenuOpen(true)}
-              style={{
-                gap: '0.4rem',
-                padding: '0.35rem 0.75rem',
-                color: '#4ade80',
-                borderColor: 'rgba(74, 222, 128, 0.45)',
-                background: 'rgba(74, 222, 128, 0.1)',
-                minHeight: '36px',
-                cursor: 'pointer'
-              }}
               title="Mode Pemilik Aktif — Klik untuk buka Pusat Kontrol Edit Konten"
               aria-label="Mode Pemilik Aktif"
             >
               <ShieldCheck size={14} />
-              <span className="topbar-btn-text" style={{ fontSize: '0.78rem', fontWeight: 600 }}>Pemilik</span>
+              <span className="desktop-inline">Pemilik</span>
             </button>
           ) : (
             <button
               type="button"
-              className="btn btn-glass btn-sm"
+              className="nova-owner-btn guest"
               onClick={openAuthModal}
-              style={{
-                gap: '0.4rem',
-                padding: '0.35rem 0.65rem',
-                color: 'var(--text-secondary)',
-                minHeight: '36px'
-              }}
               title="Mode Tamu (Read-Only) — Klik untuk Masukkan PIN Pemilik (Habib)"
               aria-label="Mode Tamu"
             >
               <Lock size={13} />
-              <span className="topbar-btn-text" style={{ fontSize: '0.78rem' }}>Tamu</span>
+              <span className="desktop-inline">Tamu</span>
             </button>
           )}
-
-          {/* Command Palette Trigger Button */}
-          <button
-            type="button"
-            className="btn btn-glass btn-sm"
-            onClick={onOpenCommandPalette}
-            style={{ gap: '0.45rem', padding: '0.35rem 0.65rem', minHeight: '36px' }}
-            title="Buka Command Palette (Ctrl + K)"
-            aria-label="Buka Command Palette"
-          >
-            <Command size={14} className="text-ice" />
-            <span style={{ fontSize: '0.8rem', display: 'none' }} className="desktop-inline">Cari</span>
-            <span className="cmd-palette-kbd" style={{ fontSize: '0.68rem', padding: '0.1rem 0.35rem' }}>Ctrl K</span>
-          </button>
-
-          {/* Student Status Badge */}
-          <div
-            className="desktop-flex"
-            style={{
-              alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.35rem 0.8rem',
-              borderRadius: 'var(--radius-full)',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid var(--border-glass)',
-              fontSize: '0.78rem',
-              color: 'var(--text-secondary)',
-              minHeight: '36px'
-            }}
-            title="Habib Ramadhan — Siswa Kelas XI PPLG 3"
-          >
-            <span style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: '#4ade80',
-              boxShadow: '0 0 8px #4ade80'
-            }} />
-            <span style={{ fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '0.02em' }}>
-              XI PPLG 3
-            </span>
-          </div>
         </div>
-        <style>{`
-          @media (max-width: 480px) {
-            .topbar-btn-text {
-              display: none !important;
-            }
-          }
-        `}</style>
       </header>
 
       {/* MODAL PUSAT KONTROL MODE PEMILIK (PANDUAN LENGKAP & EDIT CEPAT) */}

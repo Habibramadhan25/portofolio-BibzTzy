@@ -22,6 +22,8 @@ export default function ProfileEditModal({
     if (profile) {
       setFormData({
         ...profile,
+        birthDate: profile.birthDate || '',
+        closeFriendsText: Array.isArray(profile.closeFriends) ? profile.closeFriends.join(', ') : (profile.closeFriends || ''),
         interestsText: Array.isArray(profile.interests) ? profile.interests.join(', ') : '',
         languagesText: Array.isArray(profile.languages) ? profile.languages.join(', ') : ''
       });
@@ -82,8 +84,15 @@ export default function ProfileEditModal({
       .map(s => s.trim())
       .filter(Boolean);
 
+    const closeFriends = (preparedData.closeFriendsText || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
     onSave({
       ...preparedData,
+      birthDate: preparedData.birthDate || '',
+      closeFriends,
       interests,
       languages,
       avatar: avatarPreview || preparedData.avatar
@@ -295,6 +304,29 @@ export default function ProfileEditModal({
               placeholder="Indonesia (Fasih), Inggris (Dasar)"
               value={formData.languagesText}
               onChange={(e) => handleChange('languagesText', e.target.value)}
+            />
+          </FormField>
+        </div>
+
+        {/* Info Pribadi Tambahan untuk NOVA AI */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <FormField label="Tanggal Lahir / Ulang Tahun">
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Contoh: 25 Oktober 2008"
+              value={formData.birthDate || ''}
+              onChange={(e) => handleChange('birthDate', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Teman Dekat / Sahabat (Pisahkan dengan koma)">
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Contoh: Budi, Farhan, Rizky"
+              value={formData.closeFriendsText || ''}
+              onChange={(e) => handleChange('closeFriendsText', e.target.value)}
             />
           </FormField>
         </div>

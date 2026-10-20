@@ -8,21 +8,9 @@
   background-color: transparent;
 }
 
-/* Sidebar (Desktop) */
+/* Sidebar (Desktop) - Hidden in favor of NOVA GLASS full-width top navbar */
 .sidebar {
-  width: var(--sidebar-width);
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  background: var(--bg-elevated);
-  backdrop-filter: blur(var(--blur-glass));
-  -webkit-backdrop-filter: blur(var(--blur-glass));
-  border-right: 1px solid var(--border-glass);
-  display: flex;
-  flex-direction: column;
-  z-index: 100;
-  transition: transform var(--transition-normal), width var(--transition-normal);
+  display: none !important;
 }
 
 .sidebar-header {
@@ -205,13 +193,14 @@
 /* Main Content Area */
 .main-wrapper {
   flex: 1;
-  margin-left: var(--sidebar-width);
+  margin-left: 0 !important;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   position: relative;
   z-index: 1;
-  width: calc(100% - var(--sidebar-width));
+  width: 100% !important;
+  max-width: 100vw;
 }
 
 /* Sticky Topbar */
@@ -304,6 +293,12 @@
   width: 100%;
   margin: 0 auto;
   min-width: 0;
+}
+
+.page-container.page-container-home {
+  padding: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
 }
 
 /* Footer */

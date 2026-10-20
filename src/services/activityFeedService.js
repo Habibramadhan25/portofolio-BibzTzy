@@ -1,4 +1,4 @@
-import { storageService } from './storageService';
+import { storageService } from './storageService.js';
 
 const STORAGE_KEY = 'activity_feed';
 

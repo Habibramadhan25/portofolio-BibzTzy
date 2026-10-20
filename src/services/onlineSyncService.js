@@ -9,6 +9,7 @@ import { roadmapService } from './roadmapService';
 import { codingActivityService } from './codingActivityService';
 import { achievementService } from './achievementService';
 import { activityFeedService } from './activityFeedService';
+import { ownerKnowledgeService } from './ownerKnowledgeService';
 
 export const onlineSyncService = {
   // 1. Inspect all local data counts
@@ -23,7 +24,8 @@ export const onlineSyncService = {
       codingSessionsCount: codingActivityService.getSessions().length,
       xpTransactionsCount: achievementService.getTransactions().length,
       badgesCount: achievementService.getUnlockedBadges().length,
-      feedCount: activityFeedService.getFeed().length
+      feedCount: activityFeedService.getFeed().length,
+      ownerKnowledgeCount: ownerKnowledgeService.getFacts().length
     };
   },
 
@@ -32,7 +34,7 @@ export const onlineSyncService = {
     try {
       const snapshot = {
         exportedAt: new Date().toISOString(),
-        version: '3.0.0',
+        version: '3.1.0',
         profile: profileService.getProfile(),
         projects: projectService.getProjects(),
         skills: skillService.getSkills(),
@@ -42,7 +44,8 @@ export const onlineSyncService = {
         codingSessions: codingActivityService.getSessions(),
         xpTransactions: achievementService.getTransactions(),
         unlockedBadges: achievementService.getUnlockedBadges(),
-        activityFeed: activityFeedService.getFeed()
+        activityFeed: activityFeedService.getFeed(),
+        ownerKnowledge: ownerKnowledgeService.getFacts()
       };
 
       const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
@@ -256,7 +259,7 @@ export const onlineSyncService = {
       }
 
       // Step H: Sync XP Transactions & Achievements
-      onProgress({ step: 'XP & Lencana Prestasi', progress: 95 });
+      onProgress({ step: 'XP & Lencana Prestasi', progress: 90 });
       const localXP = achievementService.getTransactions();
       if (localXP.length > 0) {
         const rows = localXP.map((x) => ({
@@ -271,6 +274,34 @@ export const onlineSyncService = {
         const { error } = await supabase.from('xp_transactions').upsert(rows);
         if (error) results.errors.push(`XP: ${error.message}`);
         else results.xpTransactions = rows.length;
+      }
+
+      // Step I: Sync Owner Knowledge Base
+      onProgress({ step: 'Basis Pengetahuan Owner', progress: 95 });
+      const localFacts = ownerKnowledgeService.getFacts();
+      if (localFacts.length > 0) {
+        const rows = localFacts.map((f, idx) => ({
+          id: f.id,
+          user_id: userId,
+          key: f.key,
+          category: f.category,
+          label: f.label,
+          target_entity: f.target_entity || 'owner',
+          value: f.value || '',
+          keywords: f.keywords || [],
+          access_level: f.access_level || 'public',
+          verification_status: f.verification_status || 'verified',
+          is_public: f.isPublic !== false,
+          is_verified: f.isVerified !== false,
+          known: f.known !== false,
+          notes: f.notes || null,
+          restricted_message: f.restricted_message || null,
+          display_order: idx,
+          updated_at: new Date().toISOString()
+        }));
+        const { error } = await supabase.from('owner_knowledge').upsert(rows);
+        if (error) results.errors.push(`OwnerKnowledge: ${error.message}`);
+        else results.ownerKnowledge = rows.length;
       }
 
       onProgress({ step: 'Selesai', progress: 100 });

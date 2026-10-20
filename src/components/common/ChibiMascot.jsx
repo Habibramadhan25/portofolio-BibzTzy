@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X } from 'lucide-react';
+import { Sparkles, X, MessageSquare, Volume2, Mic, AlertCircle, Brain } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { storageService } from '../../services/storageService';
+import { ownerKnowledgeService } from '../../services/ownerKnowledgeService';
 
 // Aset gambar chibi transparan asli BibTzy dengan tema icy blue
 const CHIBI_EXPRESSIONS = {
@@ -24,7 +26,7 @@ const CHIBI_EXPRESSIONS = {
 const SIDEBAR_GUIDE_DATA = {
   home: {
     title: 'Home',
-    message: 'Selamat datang! Ini halaman utama portfolio BibTzy.',
+    message: 'Selamat datang! Ini halaman utama portfolio BibTzy. Ada asisten NOVA AI yang siap mengobrol.',
     expression: 'welcome'
   },
   dashboard: {
@@ -74,12 +76,12 @@ const SIDEBAR_GUIDE_DATA = {
   },
   contact: {
     title: 'Contact',
-    message: 'Ingin menghubungi BibTzy? Kamu bisa melalui halaman ini.',
+    message: 'Ingin menghubungi BibTzy? Kamu bisa melalui halaman ini atau lewat NOVA AI.',
     expression: 'pleading'
   },
   settings: {
     title: 'Settings',
-    message: 'Atur tampilan website sesuai keinginanmu.',
+    message: 'Atur tema, suara, wallpaper, dan preferensi maskot di sini.',
     expression: 'shy'
   },
   wallpaper: {
@@ -89,7 +91,6 @@ const SIDEBAR_GUIDE_DATA = {
   }
 };
 
-// Konversi path URL ke identifier menu
 const pathToMenuKey = (path = '/') => {
   const clean = path.replace(/^\//, '').toLowerCase();
   if (!clean || clean === 'home') return 'home';
@@ -111,36 +112,71 @@ export default function ChibiMascot() {
   const location = useLocation();
   const { playSound, isReducedMotion } = useTheme();
 
+  // Settings State: Enabled & Animations
+  const [mascotEnabled, setMascotEnabled] = useState(() => storageService.get('nova_mascot_enabled', true));
+  const [animEnabled, setAnimEnabled] = useState(() => storageService.get('nova_mascot_anim_enabled', true));
+
   // State panduan chibi disinkronkan dengan rute saat ini
   const [guideState, setGuideState] = useState(() => {
     const initialKey = pathToMenuKey(typeof window !== 'undefined' ? window.location.pathname : '/');
     return SIDEBAR_GUIDE_DATA[initialKey] || SIDEBAR_GUIDE_DATA.home;
   });
 
-  const [isVisible, setIsVisible] = useState(true);
+  // AI Connection State
+  const [aiStatus, setAiStatus] = useState('idle'); // 'idle' | 'listening' | 'thinking' | 'speaking' | 'error' | 'success'
+  const [aiExpression, setAiExpression] = useState(null);
   const [isBubbleOpen, setIsBubbleOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
 
   const autoDismissTimerRef = useRef(null);
 
-  // Jadwalkan penutupan bubble otomatis setelah 5 detik
-  const scheduleAutoDismiss = useCallback((duration = 5000) => {
-    if (autoDismissTimerRef.current) {
-      clearTimeout(autoDismissTimerRef.current);
-    }
+  const scheduleAutoDismiss = useCallback((duration = 6000) => {
+    if (autoDismissTimerRef.current) clearTimeout(autoDismissTimerRef.current);
     autoDismissTimerRef.current = setTimeout(() => {
       setIsBubbleOpen(false);
     }, duration);
   }, []);
 
-  // Bersihkan timer auto-dismiss saat unmount
+  // Sync settings when storage changes
   useEffect(() => {
+    const handleSettingsUpdate = () => {
+      setMascotEnabled(storageService.get('nova_mascot_enabled', true));
+      setAnimEnabled(storageService.get('nova_mascot_anim_enabled', true));
+    };
+
+    window.addEventListener('nova-mascot-settings-changed', handleSettingsUpdate);
+    window.addEventListener('storage', handleSettingsUpdate);
     return () => {
-      if (autoDismissTimerRef.current) clearTimeout(autoDismissTimerRef.current);
+      window.removeEventListener('nova-mascot-settings-changed', handleSettingsUpdate);
+      window.removeEventListener('storage', handleSettingsUpdate);
     };
   }, []);
 
-  // Sinkronisasi data panduan saat lokasi halaman berpindah (tanpa membuka balon secara paksa)
+  // Listen to NOVA AI status updates
+  useEffect(() => {
+    const handleAiStatus = (e) => {
+      const { status, expression } = e.detail || {};
+      setAiStatus(status || 'idle');
+      if (expression && CHIBI_EXPRESSIONS[expression]) {
+        setAiExpression(expression);
+      } else {
+        setAiExpression(null);
+      }
+
+      // If AI encounters error, pop open bubble with retry hint
+      if (status === 'error') {
+        setIsBubbleOpen(true);
+        scheduleAutoDismiss(7000);
+      }
+    };
+
+    window.addEventListener('nova-ai-status-change', handleAiStatus);
+    return () => {
+      window.removeEventListener('nova-ai-status-change', handleAiStatus);
+    };
+  }, [scheduleAutoDismiss]);
+
+  // Route synchronization
   useEffect(() => {
     const key = pathToMenuKey(location.pathname);
     const guideItem = SIDEBAR_GUIDE_DATA[key] || SIDEBAR_GUIDE_DATA.home;
@@ -148,7 +184,6 @@ export default function ChibiMascot() {
     setImgError(false);
   }, [location.pathname]);
 
-  // Klik tombol "x" pada balon teks
   const handleCloseBubble = (e) => {
     e.stopPropagation();
     playSound?.('click');
@@ -159,28 +194,28 @@ export default function ChibiMascot() {
     }
   };
 
-  // Klik pada maskot: buka/tutup balon panduan interaktif
+  // Click on mascot: Open NOVA AI or toggle bubble
   const handleMascotClick = (e) => {
     e.stopPropagation();
     playSound?.('bubble');
 
-    if (!isBubbleOpen) {
-      setIsBubbleOpen(true);
-      scheduleAutoDismiss(5000);
-    } else {
-      setIsBubbleOpen(false);
-      if (autoDismissTimerRef.current) {
-        clearTimeout(autoDismissTimerRef.current);
-        autoDismissTimerRef.current = null;
-      }
-    }
+    // Trigger opening of NOVA AI chat modal
+    window.dispatchEvent(new CustomEvent('nova-ai-open'));
   };
 
+  const handleBubbleToggle = (e) => {
+    e.stopPropagation();
+    setIsBubbleOpen((prev) => !prev);
+  };
+
+  // Determine current image expression
+  const currentExpressionKey = aiExpression || guideState.expression || 'welcome';
   const currentChibiSrc = imgError
     ? '/images/bibtzy-frost-logo.png'
-    : (CHIBI_EXPRESSIONS[guideState.expression] || CHIBI_EXPRESSIONS.welcome);
+    : (CHIBI_EXPRESSIONS[currentExpressionKey] || CHIBI_EXPRESSIONS.welcome);
 
-  if (!isVisible) return null;
+  // If mascot is disabled by user in settings, do not render
+  if (!mascotEnabled) return null;
 
   return (
     <div
@@ -196,13 +231,12 @@ export default function ChibiMascot() {
         alignItems: 'flex-end',
         userSelect: 'none'
       }}
-      aria-label="Maskot Panduan BibTzy"
+      aria-label="Maskot NOVA & Panduan BibTzy"
     >
       <AnimatePresence>
-        {/* BALON TEKS PANDUAN (Hanya muncul jika diklik, tidak menutupi konten halaman) */}
         {isBubbleOpen && (
           <motion.div
-            key={guideState.title}
+            key={aiStatus === 'error' ? 'ai-error' : guideState.title}
             initial={!isReducedMotion ? { opacity: 0, y: 10, scale: 0.92 } : { opacity: 0 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={!isReducedMotion ? { opacity: 0, y: 8, scale: 0.92 } : { opacity: 0 }}
@@ -210,14 +244,14 @@ export default function ChibiMascot() {
             style={{
               position: 'relative',
               pointerEvents: 'auto',
-              width: 'min(260px, calc(100vw - 2.5rem))',
-              padding: '0.75rem 0.95rem',
-              borderRadius: '14px',
-              background: 'rgba(6, 14, 28, 0.95)',
+              width: 'min(280px, calc(100vw - 2.5rem))',
+              padding: '0.85rem 1rem',
+              borderRadius: '16px',
+              background: 'rgba(6, 14, 28, 0.96)',
               backdropFilter: 'blur(20px)',
               WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(56, 189, 248, 0.35)',
-              boxShadow: '0 12px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.2)',
+              border: aiStatus === 'error' ? '1px solid rgba(239, 68, 68, 0.5)' : '1px solid rgba(56, 189, 248, 0.35)',
+              boxShadow: '0 12px 30px rgba(0, 0, 0, 0.75), 0 0 20px rgba(56, 189, 248, 0.2)',
               marginBottom: '0.65rem',
               color: '#F4F8FF',
               transformOrigin: 'bottom right'
@@ -235,17 +269,21 @@ export default function ChibiMascot() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Sparkles size={13} className="text-ice" />
+                {aiStatus === 'error' ? (
+                  <AlertCircle size={14} style={{ color: '#EF4444' }} />
+                ) : (
+                  <Sparkles size={13} style={{ color: '#38BDF8' }} />
+                )}
                 <span
                   style={{
                     fontSize: '0.74rem',
                     fontWeight: 700,
                     letterSpacing: '0.04em',
                     textTransform: 'uppercase',
-                    color: '#8DDCFF'
+                    color: aiStatus === 'error' ? '#FCA5A5' : '#8DDCFF'
                   }}
                 >
-                  Panduan • {guideState.title}
+                  {aiStatus === 'error' ? 'NOVA AI • Kendala' : `Panduan • ${guideState.title}`}
                 </span>
               </div>
 
@@ -267,26 +305,82 @@ export default function ChibiMascot() {
                 }}
                 className="chibi-close-btn"
                 title="Tutup (×)"
-                aria-label="Tutup panduan"
+                aria-label="Tutup pesan"
               >
                 <X size={12} />
               </button>
             </div>
 
-            {/* Isi Pesan Singkat */}
+            {/* Isi Pesan */}
             <p
               style={{
                 margin: 0,
-                fontSize: '0.8rem',
+                fontSize: '0.82rem',
                 lineHeight: '1.45',
                 color: '#E0F2FE',
                 fontWeight: 500
               }}
             >
-              {guideState.message}
+              {aiStatus === 'error'
+                ? 'Waduh, terjadi sedikit kendala saat memproses pertanyaan! Klik maskot untuk coba lagi atau tanya topik lain ya.'
+                : guideState.message}
             </p>
 
-            {/* Ekor Balon Icy Blue ke Arah Maskot */}
+            {/* Quick Action inside Bubble */}
+            <div style={{ marginTop: '0.6rem', display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleMascotClick}
+                style={{
+                  flex: 1,
+                  padding: '0.35rem 0.6rem',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  borderRadius: '8px',
+                  background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.3) 0%, rgba(14, 28, 52, 0.8) 100%)',
+                  border: '1px solid #38BDF8',
+                  color: '#BAE6FD',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.35rem'
+                }}
+              >
+                <MessageSquare size={12} />
+                <span>Buka NOVA AI</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  playSound?.('click');
+                  window.dispatchEvent(new CustomEvent('nova-ai-open', {
+                    detail: { mode: 'owner' }
+                  }));
+                }}
+                style={{
+                  padding: '0.35rem 0.6rem',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  borderRadius: '8px',
+                  background: 'rgba(56, 189, 248, 0.12)',
+                  border: '1px solid rgba(56, 189, 248, 0.35)',
+                  color: '#BAE6FD',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.35rem'
+                }}
+                title="Tanya informasi dan preferensi owner"
+              >
+                <Brain size={12} />
+                <span>Fakta Owner</span>
+              </button>
+            </div>
+
+            {/* Ekor Balon */}
             <div
               style={{
                 position: 'absolute',
@@ -294,7 +388,7 @@ export default function ChibiMascot() {
                 right: '24px',
                 width: '10px',
                 height: '10px',
-                background: 'rgba(6, 14, 28, 0.95)',
+                background: 'rgba(6, 14, 28, 0.96)',
                 borderRight: '1px solid rgba(56, 189, 248, 0.35)',
                 borderBottom: '1px solid rgba(56, 189, 248, 0.35)',
                 transform: 'rotate(45deg)',
@@ -305,10 +399,10 @@ export default function ChibiMascot() {
         )}
       </AnimatePresence>
 
-      {/* ICON BADGE MASKOT CHIBI BULAT (Rapi, mewah, tidak menutupi isi kartu) */}
+      {/* ICON BADGE MASKOT CHIBI */}
       <motion.div
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.94 }}
+        whileHover={animEnabled && !isReducedMotion ? { scale: 1.08 } : {}}
+        whileTap={animEnabled && !isReducedMotion ? { scale: 0.94 } : {}}
         onClick={handleMascotClick}
         style={{
           width: '58px',
@@ -317,8 +411,22 @@ export default function ChibiMascot() {
           background: 'rgba(6, 14, 28, 0.92)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          border: '1.5px solid rgba(56, 189, 248, 0.45)',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.65), 0 0 16px rgba(56, 189, 248, 0.3)',
+          border:
+            aiStatus === 'listening'
+              ? '2px solid #38BDF8'
+              : aiStatus === 'thinking'
+              ? '2px solid #A855F7'
+              : aiStatus === 'speaking'
+              ? '2px solid #00F0FF'
+              : aiStatus === 'error'
+              ? '2px solid #EF4444'
+              : '1.5px solid rgba(56, 189, 248, 0.45)',
+          boxShadow:
+            aiStatus === 'listening'
+              ? '0 0 25px rgba(56, 189, 248, 0.7)'
+              : aiStatus === 'speaking'
+              ? '0 0 25px rgba(0, 240, 255, 0.7)'
+              : '0 8px 24px rgba(0, 0, 0, 0.65), 0 0 16px rgba(56, 189, 248, 0.3)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -326,22 +434,27 @@ export default function ChibiMascot() {
           pointerEvents: 'auto',
           position: 'relative',
           overflow: 'hidden',
-          transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
+          transition: 'all 0.25s ease'
         }}
-        title="Maskot BibTzy — Ketuk untuk bantuan & info halaman!"
+        title="Klik untuk buka NOVA AI (Voice & Owner Assistant)!"
       >
         {/* Glow ambient di belakang maskot */}
         <div
           style={{
             position: 'absolute',
-            inset: '4px',
+            inset: '3px',
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, transparent 75%)',
+            background:
+              aiStatus === 'listening'
+                ? 'radial-gradient(circle, rgba(56, 189, 248, 0.4) 0%, transparent 75%)'
+                : aiStatus === 'thinking'
+                ? 'radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 75%)'
+                : 'radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, transparent 75%)',
             pointerEvents: 'none'
           }}
         />
 
-        {/* Gambar Maskot Chibi dengan fallback aman anti-broken image (100% bebas icon error) */}
+        {/* Gambar Maskot Chibi */}
         {imgError ? (
           <div
             style={{
@@ -349,8 +462,7 @@ export default function ChibiMascot() {
               height: '100%',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              background: 'radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, transparent 70%)'
+              justifyContent: 'center'
             }}
           >
             <Sparkles size={24} style={{ color: '#38BDF8', filter: 'drop-shadow(0 0 8px rgba(56, 189, 248, 0.8))' }} />
@@ -358,10 +470,8 @@ export default function ChibiMascot() {
         ) : (
           <img
             src={currentChibiSrc}
-            alt="Maskot BibTzy"
-            onError={() => {
-              setImgError(true);
-            }}
+            alt="Maskot BibTzy & NOVA AI"
+            onError={() => setImgError(true)}
             style={{
               width: '84%',
               height: '84%',
@@ -372,6 +482,48 @@ export default function ChibiMascot() {
             }}
             draggable={false}
           />
+        )}
+
+        {/* Floating Mini Mic / Audio Icon Badge */}
+        {aiStatus === 'listening' && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '2px',
+              right: '2px',
+              width: '18px',
+              height: '18px',
+              borderRadius: '50%',
+              background: '#0284C7',
+              border: '1.5px solid #FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 8px #38BDF8'
+            }}
+          >
+            <Mic size={10} color="#FFFFFF" />
+          </div>
+        )}
+        {aiStatus === 'speaking' && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '2px',
+              right: '2px',
+              width: '18px',
+              height: '18px',
+              borderRadius: '50%',
+              background: '#00F0FF',
+              border: '1.5px solid #030712',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 8px #00F0FF'
+            }}
+          >
+            <Volume2 size={10} color="#030712" />
+          </div>
         )}
       </motion.div>
 

@@ -1,4 +1,4 @@
-import { storageService } from './storageService';
+import { storageService } from './storageService.js';
 
 export const INITIAL_TIMELINE = [
   {

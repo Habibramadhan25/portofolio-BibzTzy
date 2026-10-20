@@ -80,6 +80,44 @@ export default function Sidebar({ profile, onItemClick }) {
             </NavLink>
           );
         })}
+
+        {/* NOVA AI Floating Launcher in Sidebar */}
+        <button
+          type="button"
+          onClick={() => {
+            onItemClick?.();
+            window.dispatchEvent(new CustomEvent('nova-ai-open'));
+          }}
+          className="nav-item"
+          style={{
+            marginTop: '0.5rem',
+            background: 'linear-gradient(135deg, rgba(69, 207, 255, 0.2) 0%, rgba(14, 28, 52, 0.5) 100%)',
+            border: '1px solid rgba(69, 207, 255, 0.4)',
+            color: '#45CFFF',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.65rem',
+            padding: '0.7rem 0.85rem',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            textAlign: 'left',
+            fontWeight: 700
+          }}
+          title="Buka NOVA AI Assistant (Ctrl + J)"
+        >
+          <Sparkles className="nav-icon" style={{ color: '#45CFFF' }} />
+          <span>NOVA AI</span>
+          <span style={{
+            marginLeft: 'auto',
+            fontSize: '0.62rem',
+            padding: '0.15rem 0.4rem',
+            borderRadius: '999px',
+            background: 'rgba(69, 207, 255, 0.25)',
+            color: '#FFFFFF'
+          }}>
+            Voice
+          </span>
+        </button>
       </nav>
 
       {/* User Mini Card Footer */}
